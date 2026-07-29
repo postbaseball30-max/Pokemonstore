@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PokeBreakBros — Card Shop</title>
+<style>
+  :root{
+    --ink:#1c2422;
+    --ink-soft:#4a544f;
+    --paper:#f6f4ec;
+    --paper-raised:#ffffff;
+    --line:#d9d4c4;
+    --line-strong:#b7b09a;
+    --holo-1:#2f6f5e;
+    --holo-2:#7a4fb5;
+    --amber:#c47a1f;
+    --danger:#a13a2e;
+    --radius:10px;
+    --mono: 'Courier New', Courier, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: Arial, Helvetica, sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--holo-1);}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px;}
+
+  header.topbar{
+    position:sticky;top:0;z-index:40;
+    background:var(--ink);
+    color:var(--paper);
+    border-bottom:3px solid var(--holo-1);
+  }
+  .topbar-inner{
+    max-width:1180px;margin:0 auto;padding:14px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{
+    width:38px;height:38px;border-radius:50%;object-fit:cover;
+    border:2px solid var(--holo-1);
+  }
+  .brand h1{font-size:19px;margin:0;font-weight:bold;letter-spacing:0.3px;}
+  .brand .tag{font-size:11px;color:#c9d1cc;font-family:var(--mono);}
+  .top-actions{display:flex;gap:10px;align-items:center;}
+  button.pill, a.pill{
+    font-family:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-block;
+    background:transparent;border:1.5px solid #4d5952;color:var(--paper);
+    padding:8px 14px;border-radius:20px;transition:background .15s;
+  }
+  button.pill:hover, a.pill:hover{background:#2a332e;}
+  a.twitch-follow{border-color:#9146FF;color:#fff;background:#9146FF;font-weight:bold;}
+  a.twitch-follow:hover{background:#7a2fe0;}
+  button.cart-btn{
+    background:var(--paper);color:var(--ink);border:1.5px solid var(--paper);
+    font-weight:bold;position:relative;
+  }
+  button.cart-btn:hover{background:#e9e5d6;}
+  .cart-count{
+    position:absolute;top:-8px;right:-8px;background:var(--holo-2);color:#fff;
+    border-radius:50%;width:20px;height:20px;font-size:11px;display:flex;
+    align-items:center;justify-content:center;font-weight:bold;
+  }
+
+  .main-nav{
+    display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    max-width:1180px;margin:0 auto;padding:0 20px;border-top:1px solid #2a332e;
+  }
+  button.navlink{
+    font-family:inherit;font-size:13.5px;cursor:pointer;background:transparent;border:none;
+    color:#c9d1cc;padding:12px 16px;white-space:nowrap;flex-shrink:0;
+    border-bottom:3px solid transparent;transition:color .15s,border-color .15s;
+  }
+  button.navlink:hover{color:#fff;}
+  button.navlink.active{color:#fff;font-weight:bold;border-bottom-color:var(--holo-1);}
+
+  .page-section{min-height:60vh;}
+  .wrap.narrow{max-width:720px;}
+  .section-title{font-size:24px;margin:30px 0 6px;font-family:var(--mono);letter-spacing:-0.5px;}
+
+  .home-hero{
+    position:relative;min-height:calc(100vh - 106px);display:flex;align-items:center;justify-content:center;
+    overflow:hidden;background:var(--ink);
+  }
+  .home-bg{
+    position:absolute;inset:0;display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(90px, 1fr));
+    grid-auto-rows:90px;gap:3px;opacity:0.55;padding:3px;overflow:hidden;
+  }
+  .home-bg .bg-tile{background:#2a332e;overflow:hidden;border-radius:3px;}
+  .home-bg .bg-tile img{width:100%;height:100%;object-fit:cover;transition:opacity .5s ease;}
+  .home-hero-overlay{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg, rgba(28,36,34,0.68) 0%, rgba(28,36,34,0.85) 100%);
+  }
+  .home-hero-content{position:relative;z-index:2;text-align:center;color:#fff;padding:20px;}
+  .home-mark{
+    display:inline-block;width:110px;height:110px;border-radius:50%;object-fit:cover;
+    border:3px solid var(--holo-1);margin-bottom:18px;box-shadow:0 4px 20px rgba(0,0,0,0.4);
+  }
+  .home-hero-content h2{font-size:44px;margin:0 0 10px;letter-spacing:-1px;}
+  .home-tag{font-size:15px;color:#dfe3df;margin:0 0 26px;font-family:var(--mono);}
+  .home-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+  button.primary-cta, button.ghost-cta{
+    font-family:inherit;font-size:14px;font-weight:bold;padding:12px 22px;border-radius:8px;cursor:pointer;
+  }
+  button.primary-cta{background:var(--paper);color:var(--ink);border:none;}
+  button.primary-cta:hover{background:#e9e5d6;}
+  button.ghost-cta{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.5);}
+  button.ghost-cta:hover{background:rgba(255,255,255,0.12);}
+
+  .cat-tabs{display:flex;gap:8px;margin:16px 0 4px;flex-wrap:wrap;}
+  button.cat-tab{
+    font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer;
+    background:transparent;border:1.5px solid var(--line-strong);color:var(--ink-soft);
+    padding:8px 16px;border-radius:20px;
+  }
+  button.cat-tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+  @media (max-width:900px){
+    .home-hero-content h2{font-size:32px;}
+  }
+
+  .filters{
+    display:flex;flex-wrap:wrap;gap:10px;padding:18px 0;
+    border-bottom:1px solid var(--line);position:sticky;top:102px;background:var(--paper);z-index:30;
+  }
+  .filters input, .filters select{
+    font-family:inherit;font-size:13px;padding:9px 11px;border-radius:8px;
+    border:1.5px solid var(--line-strong);background:var(--paper-raised);color:var(--ink);
+  }
+  .filters input[type=text]{flex:1;min-width:180px;}
+  .filters select{cursor:pointer;}
+  .result-count{font-size:12px;color:var(--ink-soft);align-self:center;margin-left:auto;font-family:var(--mono);}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:16px;padding:24px 0;
+  }
+  .card{
+    background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px;display:flex;flex-direction:column;gap:8px;position:relative;
+    transition:border-color .15s, transform .1s;
+  }
+  .card:hover{border-color:var(--line-strong);}
+  .card .imgwrap{
+    background:#efece0;border-radius:6px;overflow:hidden;aspect-ratio:5/7;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .card img{width:100%;height:100%;object-fit:contain;}
+  .badge{
+    position:absolute;top:20px;left:20px;font-size:10px;font-weight:bold;
+    padding:3px 7px;border-radius:5px;font-family:var(--mono);letter-spacing:0.3px;
+  }
+  .badge.rare{background:#e7ddf5;color:#4a2c8a;}
+  .badge.uncommon{background:#dcefe6;color:#1f6b4d;}
+  .badge.common{background:#e9e6db;color:#5b564a;}
+  .card .set{font-size:11px;color:var(--ink-soft);font-family:var(--mono);}
+  .card h3{font-size:14px;margin:0;line-height:1.3;min-height:36px;}
+  .card .meta{font-size:11px;color:var(--ink-soft);display:flex;gap:6px;flex-wrap:wrap;}
+  .card .meta span{background:#efece0;padding:2px 6px;border-radius:4px;}
+  .card .pricerow{display:flex;align-items:center;justify-content:space-between;margin-top:auto;}
+  .card .price{font-size:18px;font-weight:bold;font-family:var(--mono);}
+  .card .stock{font-size:11px;color:var(--amber);font-weight:bold;}
+  .card .stock.out{color:var(--danger);}
+  .card button.add{
+    width:100%;padding:9px;border-radius:7px;border:none;background:var(--ink);
+    color:var(--paper);font-weight:bold;font-size:13px;cursor:pointer;font-family:inherit;
+  }
+  .card button.add:disabled{background:#c9c4b3;color:#8a8474;cursor:not-allowed;}
+  .card button.add:hover:not(:disabled){background:var(--holo-1);}
+
+  .empty{padding:60px 0;text-align:center;color:var(--ink-soft);}
+
+  .stream-block{margin-bottom:22px;}
+  .stream-banner{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+    background:var(--ink);color:var(--paper);padding:12px 16px;border-radius:10px 10px 0 0;
+  }
+  .stream-banner .st-title{font-weight:bold;font-size:14.5px;}
+  .stream-banner .st-when{font-size:12px;color:#c9d1cc;font-family:var(--mono);}
+  .stream-banner a.twitch-link{
+    background:#9146FF;color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;
+    font-weight:bold;text-decoration:none;
+  }
+  .stream-block .grid{border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;padding:16px;margin:0;}
+  .pack-card .badge.pack{background:#f5ddb8;color:#7a4a0a;}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(28,36,34,0.55);z-index:100;
+    display:flex;justify-content:flex-end;
+  }
+  .overlay.center{justify-content:center;align-items:center;}
+  .panel{
+    background:var(--paper);width:420px;max-width:92vw;height:100%;
+    overflow-y:auto;padding:22px;box-shadow:-4px 0 24px rgba(0,0,0,0.15);
+  }
+  .modal{
+    background:var(--paper);width:460px;max-width:92vw;max-height:88vh;overflow-y:auto;
+    border-radius:14px;padding:26px;
+  }
+  .panel-head, .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .panel-head h2, .modal-head h2{font-size:18px;margin:0;font-family:var(--mono);}
+  button.icon{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-soft);line-height:1;}
+  button.icon:hover{color:var(--ink);}
+
+  .cart-line{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);align-items:center;}
+  .cart-line img{width:44px;height:60px;object-fit:contain;background:#efece0;border-radius:4px;}
+  .cart-line .info{flex:1;min-width:0;}
+  .cart-line .info h4{font-size:13px;margin:0 0 2px;}
+  .cart-line .info .sub{font-size:11px;color:var(--ink-soft);}
+  .cart-line .qtyctrl{display:flex;align-items:center;gap:6px;}
+  .cart-line .qtyctrl button{
+    width:22px;height:22px;border-radius:5px;border:1px solid var(--line-strong);
+    background:var(--paper-raised);cursor:pointer;font-size:13px;line-height:1;
+  }
+  .cart-line .linetotal{font-family:var(--mono);font-weight:bold;font-size:13px;min-width:56px;text-align:right;}
+
+  .sumrow{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;}
+  .sumrow.total{font-weight:bold;font-size:16px;border-top:1px solid var(--line);margin-top:8px;padding-top:10px;font-family:var(--mono);}
+
+  label.field{display:block;font-size:12px;font-weight:bold;margin:12px 0 4px;color:var(--ink-soft);}
+  .field input, .field select{
+    width:100%;padding:9px 10px;border-radius:7px;border:1.5px solid var(--line-strong);
+    font-family:inherit;font-size:13px;background:var(--paper-raised);color:var(--ink);
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1.4fr 0.8fr 1fr;gap:10px;}
+
+  button.primary{
+    width:100%;padding:12px;border-radius:8px;border:none;background:var(--ink);
+    color:var(--paper);font-weight:bold;font-size:14px;cursor:pointer;margin-top:14px;font-family:inherit;
+  }
+  button.primary:hover{background:var(--holo-1);}
+  button.ghost{
+    width:100%;padding:11px;border-radius:8px;border:1.5px solid var(--line-strong);
+    background:transparent;color:var(--ink);font-weight:bold;font-size:13px;cursor:pointer;margin-top:8px;font-family:inherit;
+  }
+
+  .note{font-size:11.5px;color:var(--ink-soft);line-height:1.5;background:#efece0;padding:10px 12px;border-radius:8px;margin-top:12px;}
+  .note.warn{background:#f5e9d8;color:#6b4a12;}
+
+  #paypal-btn-container{margin-top:14px;min-height:45px;}
+
+  table.orders{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.orders th, table.orders td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;}
+  table.orders th{color:var(--ink-soft);font-size:11px;text-transform:uppercase;letter-spacing:0.4px;}
+
+  .admin-tabs{display:flex;gap:8px;margin:14px 0;}
+  button.pill.dark{border-color:var(--line-strong);color:var(--ink);}
+  button.pill.dark.active{background:var(--ink);color:var(--paper);}
+  #photoSearch{width:100%;padding:9px 10px;border-radius:7px;border:1.5px solid var(--line-strong);font-family:inherit;font-size:13px;}
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px;max-height:420px;overflow-y:auto;}
+  .photo-card{border:1px solid var(--line);border-radius:8px;padding:8px;font-size:11px;}
+  .photo-card img{width:100%;aspect-ratio:5/7;object-fit:contain;background:#efece0;border-radius:5px;margin-bottom:6px;}
+  .photo-card .pname{font-weight:bold;font-size:11.5px;margin-bottom:2px;line-height:1.3;}
+  .photo-card .psku{color:var(--ink-soft);font-family:var(--mono);font-size:10px;margin-bottom:6px;word-break:break-all;}
+  .photo-card input[type=file]{font-size:10px;width:100%;}
+
+  .bulk-order-list{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;margin-top:12px;font-size:12px;}
+  .bulk-order-list .bo-row{display:flex;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);}
+  .bulk-order-list .bo-row:last-child{border-bottom:none;}
+  .bulk-order-list .bo-num{font-family:var(--mono);color:var(--ink-soft);width:26px;flex-shrink:0;}
+  .bulk-preview-row{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px;}
+  .bulk-preview-row img{width:36px;height:50px;object-fit:cover;border-radius:4px;background:#efece0;}
+  .bulk-preview-row .bp-file{color:var(--ink-soft);font-family:var(--mono);font-size:10.5px;}
+
+  .stream-admin-card{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:14px;}
+  .stream-admin-card .sac-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+  .stream-admin-card .sac-head h4{margin:0 0 3px;font-size:14px;}
+  .stream-admin-card .sac-sub{font-size:11.5px;color:var(--ink-soft);font-family:var(--mono);}
+  .stream-admin-card select.status-select{font-size:12px;padding:5px 8px;border-radius:6px;border:1.5px solid var(--line-strong);}
+  .pack-row{display:flex;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px;}
+  .pack-row .prname{flex:1;}
+  .pack-add-form{display:grid;grid-template-columns:1.6fr 1fr 0.8fr 0.7fr;gap:6px;margin-top:10px;}
+  .pack-add-form input{padding:7px 8px;font-size:12px;border-radius:6px;border:1.5px solid var(--line-strong);}
+  .pull-row{border-top:1px solid var(--line);padding:10px 0;font-size:12.5px;}
+  .pull-row textarea{width:100%;margin-top:6px;padding:7px;border-radius:6px;border:1.5px solid var(--line-strong);font-family:inherit;font-size:12px;min-height:44px;}
+
+  footer{border-top:1px solid var(--line);padding:24px 0;margin-top:20px;font-size:12px;color:var(--ink-soft);text-align:center;}
+
+  @media (max-width:640px){
+    .row3{grid-template-columns:1fr;}
+    .brand .tag{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <img class="mark" src="data:image/jpeg;base64,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" alt="PokeBreakBros logo">
+      <div>
+        <h1 id="shopName">Binder Row</h1>
+        <div class="tag">singles &amp; sealed</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <a class="pill twitch-follow" href="https://www.twitch.tv/pokebreakbroslive" target="_blank" rel="noopener">Watch on Twitch</a>
+      <button class="pill" onclick="openAdmin()">Shop admin</button>
+      <button class="cart-btn" onclick="openCart()">
+        Cart
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+  </div>
+  <nav class="main-nav">
+    <button class="navlink active" data-sec="home" onclick="showSection('home')">Home</button>
+    <button class="navlink" data-sec="about" onclick="showSection('about')">About</button>
+    <button class="navlink" data-sec="inventory" onclick="showSection('inventory')">Inventory</button>
+    <button class="navlink" data-sec="schedule" onclick="showSection('schedule')">Live schedule</button>
+  </nav>
+</header>
+
+<main>
+
+<section id="sec-home" class="page-section">
+  <div class="home-hero">
+    <div class="home-bg" id="homeBgLayer"></div>
+    <div class="home-hero-overlay"></div>
+    <div class="home-hero-content">
+      <img class="home-mark" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACgAKADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD4yp0QzIo96bT4P9av1pPYDp7393oyKO4rN0zSri/kAjU49a1L8btNh9K6Xwu0cNiGhiy2OuK4cPLlg2u518ilLUraZ4MfywZDg1pDwZFjrUo1q8jnwyfLWrDr0Bj+Y81TlM6I06fY5u78GlVJjNczq+i3VmSWUlR3ru9R1uVj/o4yKqTTzXVo/wBphyMdcVUZy6mdSlB6I4jw+5+0PGehFZOspsvXA9a3rGJV1WTYMDmsTXTm+f61NN/7Q7djmkrQM+iiiu0xCiiigAooooAKKKKACvefgP8ACQXKQ+K/FVr/AKPw9jYyr/rfSSQf3fRe/U8dbn7PXwb+1C38XeLrT/RhiWxsJV/1vcSSA/w9wvfqeOv0TY6fLekSyZjiJznHLfT/ABr834p4tjDmwmEl5SkvyX6s+jy3KXZVqy32X6s/PGpbUbp1HvTERnOFBNaem6VcSSK5BUA96/RKk4xWrPnoxbeh0UsIkt4Yu3Fdn4atI47LZtAOK5PMcbwR7wWGM13djAfsqPH1xXnUX7h6MIlGfS281pGPFV4dLR0kbFad/JJHES5AFZcOuwQq0ZxW12acoR6W0iYjOCDWrDZiOyKSgE4qjp939okLQsOe1aypKykyH5QMmi4WOOh0K8vNfW00uzmurmXJWKJMnA6n2A7k8CqeseCbX7a4vvGfhaxmHWH7TLcMp9GMEbqPzra+K+tyaJIfB+nu1tEIYpdYlQYe6ldQ4iJ6+VGrKNnQtknPGObsl0xrVGb7Wx2/wAYX8jiuSlGtiH7eMuWL2sk21310SfRWvbrfRZONNNwdrru/8tTN17wTrWlaadWjNnqulKwVr/TbhbiFCegfHzRn2cLXM132l6jdaHqa6lomoL5pzGwYZEikcxyoeJI2HBU5rL+I+l2NpqtrqejQeRpesWceoW0IYsINxKyRZ7hJEdR3wBmuulWqwqKlW1vs7W26Nd7aprfXRW15alKNm4dPn80crRRRXec4UUUUAFfQH7PfwkguHt/Ffi+ACDiSxsZV4l7iSQf3e4U9ep46p8Avg+1yLfxX4qtf3HEljYyj/WdxJID/AA9wvfqeOv0UUb0r884o4ldpYPCS12lJfkv1f3Hv5ZgEmq1Vei/Vm9bwx7dwKyBlxxyD61ZxtGB1rm7O5ls5d8fK/wAUfY/4GtdrwThfJO1G/iPB/wDrV+T1cPKL1Z9XTm6rPgeOCx05Mvh39Kdbz3d/L5dshVfUVBpGlXOozBnDEE813FpY22k2mcDfiv6CryjS3fNI+Eo0pVXZaI5O7097GWOWaQls16N4cuRNpyEHOBXmHiW/a4uSFPANdB4F1jywIJGrpjCXs05G/uwqcsTZ8Qx31xIVjBCVgHSJzndnNeixGKZMgA5qtLZAyZAFJSNUl1OO02xv7aUNHu25rtIZGGns0g52nP5VNFCkacgU7UbK6TTFv5riy0mxJyl5qMvlRORz8g5aT6IprKrXhSXNN2/rb1DlfQ0vDXhzTNX+N3jPUNT8PPr0thIJba2nlSKzT5U+aZ2zyMqAgVsHORxXqXh/4k6dFpjNqHhf7OiJJJEdEC31s0MZAZtyqm3BYDlce/XGR8Bbqx1268Wa34fuo5v+JzKYnmhZFmhmRZCrD7wG8ttbGeBxyaf4q+IHhzR9fvtP1C3i1IixezeLTXYxwbiN6MSv3zgZP8O0ADrXnYe/sKcJrVRivNWS6dD06MHG8oPdt9O/cyfGFvp/j+HWop/BOlRyafFI6XemahE2p27BSVLw7VVx6pvOecZ4NeB61HHH4J8FW95GR/oV6CzD7rfbH+T2I647bvevsPwPeJ4m0OK4s7vSbi1uNsV1PAG89sYBSReArkcE9OSQOlfJ/izVfC/iHzdM1TUNR0aW01a/nhvEshcWsiySKoztYOuFiXoG7nFazbfJZO0ZXdrtr3ZK9t92tkcONpqN5PdrrZdUzgdR0bAMludy+1YskbRsVYEGu8uvDmu6Tp7araSWuuaMn377TZfOjj/66LgPF/wNRWVcWtrqUHmQlQ+M130MYmt+Zd108n2fqeROj5WZyte//AH4RLObfxV4stC0XEljp7r/AKzuJZAf4e4U9ep46yfAj4N+bJD4o8WW+IAQ9lYyD/Wekkg/u9wvfqeOD9Cu4UYQYH86+Q4m4ntfC4R/4pfov1Z6mXZde1SqvRf5j1cliHAXHvmngg9CKgiRmbYis7nsoyauR6XeuMmNE9nfn9M1+cucY7s99Rb2IJANue9SaeflkTsGyPxqO5hnt2Ec6Fc9DnIP0NTWCbYt5/jOfw7VjXknDQ6cLFqZ8tW1tb6fb7UUZArnvEN5JICseTmtLUrvcSoPFY89xbocuwr9qw9N355as8dUY06e9jIstCuLtzI/A96v6bpfl3+yNskelF7r6xwGK34PqKl8G3W++LzNyT3r06brSvKWiPEn7NVLJ3OhtbyeycJLnbW3ZagLuaK3t43mnlYJHGi7mdj0AA6mo7m1huI88dOtOk07VbXU4/BnhGB5fFupQ7r65U4/sq0YZK7v4HZSC7H7qkKOWNcuKxCox03ffRabt9kur9Fu0da7sh8T+LLPw5cnStJgt9b8Sbgj5Hm2tk/TaAOJ5Qe3KA8fMenT+HPAraOr/EL4q3Eup6uiebbWN62/yyBkNKvRQvURjp3xwtdt8Pfh/wCGPhxp4vUWK61VE/e6i6Z2HusIPK56bvvH2HFcP8RvF/h++uXt9auBcJkAWMGZGCg5wwUgdeTuIBNfMLGvG1XTwybX2p295rtFfZX9PXV+/gsntD6xjGoxWqTdlfpf+r/kZ/wR+J1xZ/FHVb3VFc6frrYcqP8AUPGpKEgdBsBz6Y9K9/fwR4XvoILnSbDTooXXlkiLCQHnPBHze565rwTwV4/0q6+IegQ3Om2WgeF9P8wQwLEg/evG0fnTMoweuO+NxJJ7ezf8IrDCWfw34on0y0m+YwQTqY+f7oIIH4YFe9OMko3hyabXvtotvI5sHW9opPm5tXr66/nch+I+u+HPht4U1X+wLW0tNXuoFVUgXiIn92s82OiqXznqxwBnt8hA2aMbe0uvtMUY2iVoym/3weefeve/inN4e0Xwd4o8N3bSXN9fywLb3BYtJMF2PJIzn+4wI/4EoAFeceAfE1t4Q0uSP/hDdM1K9Klo79m/0hWPQMr5XA/2dvvmuujKpToupSg5u+10vxfb+kebjpU6mIVOclFd3fT7jmLCy1zR5U1/R3vdIlXhLuMmJX9V5wHB7jnNdn8LL/wNrXjizl8W6bBpOsFv3RgxHp1/Ln5WePpE/sMIxxwOh4PWNa1LxDrb6lr17I93khIpWI8seig9vpUN3bx3EJjkXINVisv+t0mpvkm1a8d15X6r1+VnqcHtIUp/u/eiu/X5dP69D7YlLbirAqQcEHrmtCw0ppCJLklBjIQH5iPf0rw/9nP4lT3Uo8HeInFxqkMR/si6lPNwij/Vt6uoBwepAI6gZ+g7JAHlcMWDEDcTncQOT+eR+FfiubYOvl1eVCro117ro15f8MfUYWrCvBTj/wAMTQQxQJsijVF9AKfQeOporxTsKGtFGtxbkAtIfyA6n+n41TGAPT0qTVIHe+VlS4lOMnaPlAHQfzNILe7bpbEf7zgf41dtDelKMU7nwZe6vLKTs4rPeSWQ5ZiaaBUsSZ5Nf0pClGGyPzqriqlV+8xqR561PazSW0gZCRilAxQQDWljBOx6F4E13yLTUfEF7EJ7XRYFlETDInuXO2CL3Bf5iP7qNXvHwx8Pjwt4UafUWD63qZ+263eyffllY7thP91M4x0LZPcV438M9FS8ufBegugaO6uJ/Ed+pH3o4SYbYH23K5/4HXv1zEdRkxKT9kQ52/8APZvU/wCyP1r8z4kxfPVdNOyb19ItpL5yUn5rl7H3fDuCVRe2qfZ29Xr+VkvmeH/HnxbqN7q0WjWVzPa2EUIlmWNtrSF2IXcRzjCk4HqK8ysbZGJAULGvJAGMmux+K3+k/EXxHG4wFmjgUYxhVgjxj8ya4/TJiCFc/e4P+8OK+4yXDwoYGkoK10n9+p8znWKliMZUbeibSXZLT/gmg0aMoXGAOmOCPpViz1DWbKL7PY6vd28P9xJXUD8FYD9Kgc7VJwTiuj8G+FbvXPGdt4cu0u9PkmcxGVoTiKRonaLd/ssU/EZINdeKxFGhTlOq9Em/kt9DzaXPzJQ3N7xjozj4ReEdXnLzT7ZJ5HYklhLPIM8kk8hK4KeKa3nkt7iIxTROUkQ9VI7V9Va54UuLDwh4Y0iaCB/7P0yOK6ZiPLR1Zfmy3AAYE5OOma8D8VadoOp+KJbi18UWUP2qaPzd2WjRs4dtwG3GAD15J6gCvleH86VVTg9VeTuk3a8rrbbqz6bMMrjPC08RGa57JNNpbXV9X6HD3hiaPy5EjkJIAVwCOe/P4n8KzAiwXEkCNmPO+If7JzkfgQR+VfWnhP4IeHLR4dauLqK7nkt1XTNwWSGJyp/fntM+SWBPy8cDio9R+CPgixH9p61etHommQFp/Ml2yXD8M8s833iOBhECgDPdqVTjbAqbioyfy38l+C+fazfl/wBl1YS3TR8v6LomvaxfxzeHLe4a9spEmS4iGBbuGG1mbovOAB1JwACeK+vPhZ4zTxV4RtdWkEUTeTiZFBBWZTskXB6AMMjvh1ryDSPGkHij4s+GNB8O2MekeFLC/wDNtLKGMRiZ0RiJpAOrccA5x35JrQ+GVyvh74m6/oTYW1mlh1i3TsqykQzf+PtG3/AK8XieNTMKN61PknGKklu+VuzT89n5arU9PK6bpp1Iu8bpP1s2n+FvuPdVMsr+bKSM/dj9B7+9Xo12oBUECZfJHC9frVmvzLc+gl2CimyEqhI6gVVa+WNsTIUH94/d/Ogmx+dy8mrMf3aqDhsVZhbjFf02fnBJQx2qW9Bmimy/6th6qf5UAfRPwmtk/wCFh6jFt/5BfhrS7JfYSRLK35tn8698tLCz0Pwtc+LdciV4II82ls/CyseFLf7Oe3oCa8k/Zz0xdZ+MfiNJR/os2kaPeN/tILZBj8SQPzr1v9pSMal4UtPDiyPDHfTmORouCimNgCPoCTX5hUw0ZV1Wq7Whb1cU2/k7n3WBxPNGnhKfVycumib0v0ulv0R8X6xrFz4g8Qar4gvJ/Nm1O9luix4+UnC8dhtC4HpisrRdMudV1GS3t8Kobc0jfdUEfqeDxX0F4B+CHhjW/hpo17qX29NQu7NZnnikxw/zL8pBA+UrXm93pKeCfGWo+FootR1KW3uMIYbVneRHVWQ/KMdDj8K+9lirQ5KKba0PLyzK6NXFKpj5qNN6vW3y6W+XRaFVfB0406aW31WGaeHBEEqeW0gP91skZ9j+ddh8LviTqul6O2gGASz2X7y2neNTIlvES8lqd3IGcBf7u5umAa6fQ/h4Ne8M2GnibxFo/ju8vlWezuLR/KtbYycyGMqF2CL5g+clsDOTtHAeKdAsvCXxZ8SaXpV5d3umaXGbaa9mwxkuGhQyKSOMly5x22n60nlcMwUaOPSlG6fz/rQ5c9xmXU26mVRlBq6d9n2a1b+81/iZ4z1Pxpftc60ziyU5ttMiciGJR0L9A7+rN34UCuNtLnTZwUNrhucCIM3y+vrj8K7H4c+FY/GWu2UerPcR2FzMUt7WElZLoJ/rG3YO1FHBbuflGMMy/WnhjQPDnhy3/szw/p1jYIgG5LdQHI7Fj94n3Y1rjc7weRxWFwtJO3RaL5vVt9/zufLUMur4797Wla/9fcfLPwg1fU44tQsbO/uWsLJS1oRIMQiQEuEz0BwDxzycda63x1pWrfEDwsvh/RbALHaMJSst66ozZ/1ku3G855AJxnnnAq7ZeHtdudZvr9fAt5Et1qMtzLbwxeTEw34ADNt4KqOQO+e9cf8AFW38TWHh7Xr5BqOgJpRV7q2heFnVZHCoyqzEsnzYDhuitzkEV8ZiYfX8w9vSiou91rs++m+v5n6hhvqdDKYYetNTko/8G1rrZO2uxzng7wNrngHxzpeua21hLbWjuXWG9QyMTGyjg4HUjvTtQvhP8U9Flgt7iL7Zo+oWhd0wH2wtIu0g84YA/lWt+z54X1iTTrrxdqzTT3d9E1npz3BLHYT+9n56DACjHU7sVf8AiXbQWPxN8EW8PzG3stVuZnPUgWxGT7cGufH4xVMZUpzalJQkrrRaRk9vJ/j6HNTjShl8pU04qUo6PXaS18vxPcdLmFzpttdD/lvCkv8A30oP9as1meElZfCmkK33hYQA/wDfta06/MKsVGbS6M64tuKbAjIwe9ZeqoRZTKeoGfyNalQX0PmwOAOSpFQtGmWn0PzplGHpUbBzRP8Aep9vC8pAUV/TTaW5+dQpym7RRKjgincZBq1DprHqakudOliTfjIrNVYvQ6Z4CvBXaPoL9mvxJHpXxJ8I38jZg1zw7Pojj/p5tJN6An1MYjA/3q9v+Nc6R/D3XdYkTfdWtjObZv8AnnJKnkhvw3/hXxr4Bv71tKu9P09yur6Xcpr2jerTQD99EPXdEN2O5ix3r6L8Q+MYPiroNloPh0SjTtWt0+2MDh9zjmEHtsbOT6r6V+eZzhqsMXTv8EHr6Xuv/JXyrziz3cow88U5Rpuza1fZWs/680ehRaFphsLO38pyltbxwwsk8iFVVQBjawxwK891C3+Inh74yW0nh5o9U0TU7Ai6S+m2nMRY8svO8b1UPjBDYbJGai0T4iy+FJJ/D3i3fdDTpDbDV4InNvcbeNxIB8tvVWGAc4YirWofEPw7qOpWV7p+uaUkkeY4SL1GLknJU4PAOMf5FfR0K8l78NfM7K+FhVXJPTrZ6fh/XkbfjLVfEmrae+iT6x5YAVp7GxuGEVrH1Zp7g7cMFyVHyjcBlWHI858T+LvhVpPhSLQNNt79ZrW++23NrNHJJd3UzIVkE8zjbudG+9yAQpA4rv8AXtX0j/hHnvpriwtbC3bzJ7SWQR2wPUyS7fmnHHCL944B9RyXhb4A3vjXVbvxp4wu77TLDUZjNa2QUJdzKRw85OREW67ACwBxkYoq1oNqtXqSio66d/6+7ueTjcPTox5IwV3pqWfCOpeKvFGkaTqK276Vp7yKdLsLTKWVrZoeGkIIMjsynIPXPoc17n4J0tbGwe5bc81yxdpH5eTPV2PcsefyA4xTNC8H6VpOg6TpEKv5Om2kdsuG++qDHP1OT+NdGAAAAAAOABXyOMxPt6mitFbf8HzKjKMKKhHfqcZ44+IOm+DL6BdetJ47G4lWJLuEeZtYqWG5Bzjg8jPTpWd480fQfit4EvbfQdWtGvJ7SSG1ukIYfOAfLkHdGIUkdQQGHIrP/af0cal8NJLqKKV7ixuobhfLiZ8oGw+doOAFYnJwODXhGm67qL2unXWneIpIrmC3VftKQfPtyhEYC4V+BsDSZChjgcbq9zKsmnisN9Zw8rTi3e+1tGvz16Hn4jG0qdX2VRaNK1u+t/8Agep7bDqiCS00qS2k029a13rbTQFNiJhW2DoyqeMg7enJrx7xjL/anxZ19rb5xpWixaShPLG6vJADz67Gf/vmtLWfHE9josd3qt5pzx6MJJmazZjLPJIuSWJY7cs2Ap45YjqMV/glod5c6lpx1NWa+uJm8R6uW6rJIMWsRz3Cnfjtv9q+alhIYCNSvfS1lf1u/lZW9ZI+pxEqzo06VRJNu+nZaJ/f+TPe7eFbe3jt0+7EgQfQDH9Kkoor4Bu+p2LQKbIxRdwRn9lxmnU7aaaTYH5wgeY4FbmmwKiDjmrGt6IunT7h0qCC4jQYzX9G1p8+x89lVGFK8p7l0sEp73IaPa3SpPD0MV/fBJD8tbHiDQItyJbEZPpRDDtq5pic3hCbha6MnwVas/ildTivprCLSIzqM1xAgeRRGyhVRTwzu7KgB4+bnivQvCXjy2+E/wAUvEGnax4dvNJsru3e5srPzEuDZXEke4BCnDI5+Xj7vHoTU3hnwTJoWkW02oDypNa1TTrIRuMEQicXEjH0ysPT0rc+I2gaZ41+K3gnxBaujWqXs9pqJPRRayuw3ezFXX8q+OzDMcNVxkqdX3qfLJNrvFKW/e6kuu1lu750adVQ9rS92Ta08m7Nelrfr0tVbxJdaLBLYarpFzp+sQtEXtmYTyTGbJj2bPvsxyNvYqQfWvP7r4VfENJb+/PhZo7WWaW5zNfW6MiH5jvG/ggda9gml0jWfjJ4c8YRusls/h64uIQT1ljfan/Ats5x9a8T8T/HHxRrelahpsl1NFBexPE0cccSqqt1UfJuxjj72T61nlNfHzkvqVOKbSc+a+jbaslfpZ7vyPQzjG08XTjHFy+G9rW183p2a2Xn1K/w/sLnWPEOjx6Po39q3nmrd/ZTIsalImV23M3yqOgBPdhX2HL8UbS6+H8XiqV7i2sxyyrGftPnbzGYNgPMnmfJtHU+1fPHwT1nTPCfgPU/iBqVvAqxrBpdjGiCOSWISjfIcdSWbk9xFV/x/wCJB4V+Jem6E7W7+GNR8Q22vLOoJMbZxKuQcbRIPMIxn5s1pmteePx0qKjpC9n/ADOKTmvXVW06Pc8vB0o4egqktW/wvon6aP8AA9wsfid42Tib4W6xPEfus+qWccmPdd/B9qTSfjNrGrJcPpvwu1udbW5ktJm/tWzUCaM4dQS3zAHjI4zkdq4vVF8aXOp3M+k/ErQIrOSVntoRBGzKhOVXIDZIHfnPWuE+CHinxHpnjef4faveIINLtrpnwIzHJJuDK6sFDHcX3ZJOd3NeBRqVamHqVIRptxSdv3l7a33au9lp3O2rhaPtYqTkk9Om/TZHutx8aNUtdQstIufhVrKX98srWyDV7ItIIwC5zvwAAR19cV4d4/stf0nWtU8W6V8P7jRNDEZubq2l1S32xNz5mzy3yFbIIUcgkgdsc98HfH2o+LfjVpd/4gv/APj0025hVpmjjUErk4ChQMn8a6f4saN491XwBqsEvjvRtXt0j86W0t4ljeRUO8gFV64XOCecV71HMcZlWOpUn7ODaXNpPW7a01tokvi6s8+pl+FxdCclzSSbtt0Xpf7jBsvCPi/Xr/RdSl8F3N14TxHffYxfWqzXR27kEjlxuXkfeAbGc8816z8N/Eenafd63Z6hpuo2WstqSJd/ap4ZWklkiaVFDRHaAEU/L2zWXpcmvXfgnwmPDfjbRtIjj0a2SeGdI5GZ/LXB5zjjjFZ3w10q4svFd3Bq+pRTalb61JqN/cLyt6JbdvsxQ4GAAs6lSBhgcdq+dzXFyzCnVnX5Vy3so8yekut9NdtL6uO1tPVpwdNws3LZXdn06df6fc9f/wCEhtNufJmz6cf40n/CRWv/ADwm/T/Gq2iRmaae8kAyxwv9f6CtXav90flXw06kIO1vxPVjByV7lQeI7UHPkTfp/jTh4ktO8E/6f41Z2r/dH5Vka9KPOht1xwQzY/T+tXSqqT5UhSp2V7nyl4ujju7fKnBrI0jwwLkBzJkVu+KLF1s3eLPArmfDGq30Fy0TBioNf0dRtY+GxDk3ZHbaf4Zt7eMNG+1x3r1f4YfDwLLFrmupvxhrW2cdfR2H8h+Jqv8ACrwnPcXEOr69bmOMIJoLaQdR/C7j07gfia9VkuB/aUEIPDRsx/p/I1+c8XcWP3sFgZf4pL8l+r+SPYyrKtq1dei/VnnXxj1Gx0zxP4SOpT+Ratc3V0z7Gf50txGowoJ/5asenavHvCfjG40jwd4iS/kkgv7hpNQ02LaT563QJTGBj5XG7kjqa95+Kvh2HxLbach0/Rr5opW2DUYZGVd2AdrIwZe3qDj2rmtX8A6qLW0v5LPwndahpu2KzzbSotnEpHlqoB2yBTkgOpwecmvCynMMFTwcKVZavf5SbVvW9nfptqejiadf2zlDbX8Ul+Fro8q03xVbeG9C8Ix30rLqWj3dzpuoW6qwKxkupIYgKSDHGRz1XnHNWNdi+E/2PUNT/suyuLryZJhCkd5CZJNpIGOFT5sZ7AZrvJvBupDVn1SGy8ItqM+43GoSae5ldnGJWKEmMlstk7RnJ6ZqlcfDmPzmMfhrwRKuchmtrlM/8AEm0fQcV7KzTBc6mpyi3e/LK17ttrppdu2t+6OZU6qhyuCfa6vbRK/rp6HMmfwNNpek+FtQvY7nStMsRI6mC5RJ7gnaCdqhuMzP6ZkXrg1F8QZPB/iSw0O0j1mOEWF/AiskFzuS3ICOAxTJICIRyTkV1B+HC8/8Ut4I46fu7vP/AKMrTi+EYZU3+GvA4cgHBW74/wDH6j+1MBSnGp7Wd1drWO73fzvqV7OrODh7Na277Lb7jlIJfhjb3kd5ALRZ45BLG3l3rlWByDgjkggfWuV8F+KdNk+N2teILuR7WyuYJI4XaNnLBTGq5CA8kJz2B4zXpMHwzSS8WJfDPgcAthWKXRHtwXwa6HWvh7eXnhyOLUm0DV5rSQtb2txYtHbWkZUKUh8sqyjgZHQ46Z5qf7WwFLmhKcpc65buV2k+2jW6V7tDnTr1HGSilyu+nX1Plz4X2ulzeMYX16byNOSKSWQNHIfNAHCfICQCSMkdgea9bv8AXPAnh3QdWutCEH2yWykgCxR3GX3DABaUbVG7B9TgAda7O98HajqWlW9tqtv4a1I2r7bO1mtJFgtItqrsiZGVgPlGQcjv1yam0v4WyJJHc2eieBoD0L/ZJ5yoPBG2RiM4yOx9xXTjs/weKmqlWUlbTlUvddnfXRPXrp6GOFw1WhTcIxTv16nnHhq0+G9v4b02DU5ra6vBax/aHkjuxlyuSMIoGBnbx1xnnNdV4a1lNY8TX2pWgf7JJqmmWFtIUKGYwpPLKQp5AHmjg8gEZwTitx/g+ociPw34JZQflJju1yPp5nFdN4R8B/2Ze293rEthss43jsbGwtjDbW277zAdSx9evck8V5eOzjAzpzkpyk30bvbVPRLbVLsrfI6oUKz5Y8qSXb0tr950VjdXUdqiRtCqjplef51p6ZPLPHIZSpZH2/KMdq568h+z3MkOchTwfUdq1/DzKtnIWOP3n9BXxdeC5OZdT06ctbC3F5dLdSxxtEqo2BuXJ6VlXLvJe7nYMxYZI6U7V/8AkJT/AO9/QVWj/wBYv+8K1pU1FJrsROV9DxC7RXhYMMjFdX8IvAFoNSj1fWbUHdlrW3cd+odx/Ifia3fh34NZrdde1u3IQIZLa3devGQ7j+Q/E11UDPDJFPzw2QfXHWv0DiPiXmU8Hg5eTkvyX6s8rCYKzVSovRHQ5DdFO9gFJ9Rnj+dZhn3a+rA/KriMfTpWlIyxK8/8CqXU+vpXPRlldJj2fr7jmvzmhG9z2ajtY1tYBFmrDrHKP5f/AFqtyeXOh3f6uZOvpn/69M1RC1lc8HGAwP0NVNMuE8pYJWCj/lmx6e6moScoXXQpu0tSq+l3isQsYcdmVhg0HTb3H/Hv/wCPD/GtkxuP4DRt2ZeQEIo3MT6Cr+sT8heyiYtpaOdQSCZdu35nGegHNat7N5VrNN/E3yr9T/8AWqHS1eUT3bKS8rbR7Dv/AEH4U+dfO1CC2xlYh5sg9+w/lROXNPXoKKtHTqZy6ffqwZYCCOR8w4/Wto8uDIuN6/OvpkcikKSEklGyfajy3/uN+VZzqOe5cYKOxztxGYZ3iPVGxV2K3uJo1lW1Y7h94MBn9al1W1eW8gKggzfKfqO/5fyrRaNgQqIdqjavHYVtOt7qa3M4w1Zl/Y7r/n1k/wC/n/16t2MU0MUomUoGI2qWz9TVjy3/ALjflSMBGpkmOxB1JrJ1HJWNFFLUx9a/5CDf7q/yq5o3/Hi//XX+grMvZTNdSSsMbjkD0HatPRVLWL4BP73+greorUkvQyg7zKOr/wDISn/3v6Cqo6irWr/8hKf/AHv6CqyKzuqKMsxwBW0PgXoZy3Z//9k=" alt="PokeBreakBros logo">
+      <h2>PokeBreakBros</h2>
+      <p class="home-tag">Singles · Slabs · Sealed product · Live breaks on Twitch</p>
+      <div class="home-cta">
+        <button class="primary-cta" onclick="showSection('inventory')">Shop the inventory</button>
+        <button class="ghost-cta" onclick="showSection('schedule')">See live schedule</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sec-about" class="page-section" style="display:none;">
+  <div class="wrap narrow">
+    <h2 class="section-title">About PokeBreakBros</h2>
+    <p style="line-height:1.7;color:var(--ink);font-size:16px;font-weight:bold;margin-bottom:14px;">
+      We're the PokeBreakBros — and yeah, we've been doing this since we were kids.
+    </p>
+    <p id="aboutText" style="line-height:1.75;color:var(--ink-soft);font-size:14.5px;">
+      Long before "pack rip" was a Twitch category, we were the two brothers ripping packs on the living room floor, trading at lunch tables, and building binders one card at a time. That never stopped. It just got a lot more serious — and a lot more fun.
+      <br><br>
+      Today PokeBreakBros is our full send into the hobby we never grew out of. We run deep on <strong>vintage and modern singles</strong>, curate <strong>graded slabs</strong> for the collectors who want it certified, and stock <strong>sealed product</strong> for anyone chasing that pack-fresh feeling.
+      <br><br>
+      And then there's the main event: <strong>live breaks, right here, right on Twitch.</strong> Grab a slot, watch us rip it live, and whatever hits gets shipped straight to your door. No scripts, no cuts — just real pulls, live reactions, and the same rush we've been chasing since we were kids.
+      <br><br>
+      Come for the cards. Stay for the chaos. <strong>Let's get into some packs.</strong>
+    </p>
+  </div>
+</section>
+
+<section id="sec-inventory" class="page-section" style="display:none;">
+  <div class="wrap">
+    <h2 class="section-title" id="itemCountHeader">Loading inventory…</h2>
+
+    <div class="cat-tabs">
+      <button class="cat-tab active" data-cat="singles" onclick="setCategory('singles')">Singles</button>
+      <button class="cat-tab" data-cat="slabs" onclick="setCategory('slabs')">Slabs</button>
+      <button class="cat-tab" data-cat="packs" onclick="setCategory('packs')">Packs &amp; sealed</button>
+    </div>
+
+    <div class="filters">
+      <input type="text" id="searchInput" placeholder="Search by name, set, or number…">
+      <select id="setFilter"><option value="">All sets</option></select>
+      <select id="rarityFilter"><option value="">All rarities</option></select>
+      <select id="sortSelect">
+        <option value="name">Sort: name (A–Z)</option>
+        <option value="price-desc">Sort: price (high–low)</option>
+        <option value="price-asc">Sort: price (low–high)</option>
+      </select>
+      <span class="result-count" id="resultCount"></span>
+    </div>
+
+    <div id="grid" class="grid"></div>
+    <div id="emptyMsg" class="empty" style="display:none;">No cards match those filters.</div>
+  </div>
+</section>
+
+<section id="sec-schedule" class="page-section" style="display:none;">
+  <div class="wrap">
+    <h2 class="section-title">🔴 Live on Twitch</h2>
+    <p style="color:var(--ink-soft);font-size:13.5px;margin:0 0 16px;">Buy a pack slot below, then watch it opened live on stream — whatever's pulled ships straight to you.</p>
+    <div id="liveBreaksList"></div>
+  </div>
+</section>
+
+</main>
+
+<footer>PokeBreakBros — inventory synced from vendor tracker · shipping calculated at checkout · <a href="https://www.twitch.tv/pokebreakbroslive" target="_blank" rel="noopener">twitch.tv/pokebreakbroslive</a></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const ITEMS = [{"sku": "EN-253397-5267226-NM-HOLO", "set": "SM Promos", "name": "Pikachu & Zekrom GX - SM248", "num": "SM248", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 44.9, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/253397_in_200x200.jpg"}, {"sku": "EN-88645-1236372-NM-HOLO", "set": "Dragons Exalted", "name": "Rayquaza EX", "num": "85/124", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 37.32, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/88645_in_200x200.jpg"}, {"sku": "EN-124035-3243053-NM-HOLO", "set": "XY - Evolutions", "name": "M Blastoise EX", "num": "22/108", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 23.58, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/124035_in_200x200.jpg"}, {"sku": "EN-44425-2995350-NM-1ED", "set": "Fossil", "name": "Articuno (17)", "num": "17/62", "rarity": "Rare", "cond": "Near Mint", "print": "1st Edition", "price": 29.07, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/44425_in_200x200.jpg"}, {"sku": "EN-452030-6679848-NM-HOLO", "set": "SWSH12: Silver Tempest Trainer Gallery", "name": "Blaziken V", "num": "TG14/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 39.4, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/452030_in_200x200.jpg"}, {"sku": "EN-124083-3243493-NM-HOLO", "set": "XY - Evolutions", "name": "Chansey", "num": "70/108", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.94, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/124083_in_200x200.jpg"}, {"sku": "EN-284251-5788444-NM-HOLO", "set": "SWSH11: Lost Origin Trainer Gallery", "name": "Charizard", "num": "TG03/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 39.8, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284251_in_200x200.jpg"}, {"sku": "EN-285384-5800498-NM-HOLO", "set": "SWSH: Sword & Shield Promo Cards", "name": "Charizard V - SWSH260", "num": "SWSH260", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 66.13, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/285384_in_200x200.jpg"}, {"sku": "EN-285378-5800463-NM-HOLO", "set": "SWSH: Sword & Shield Promo Cards", "name": "Charizard VMAX - SWSH261", "num": "SWSH261", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 51.6, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/285378_in_200x200.jpg"}, {"sku": "EN-257293-5344941-NM-HOLO", "set": "SWSH09: Brilliant Stars", "name": "Charizard VSTAR", "num": "018/172", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 13.73, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/257293_in_200x200.jpg"}, {"sku": "EN-85270-3007567-NM-RH", "set": "WoTC Promo", "name": "Entei", "num": "34/53", "rarity": "Promo", "cond": "Near Mint", "print": "Reverse Holofoil", "price": 37.98, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/85270_in_200x200.jpg"}, {"sku": "EN-477181-6922282-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Hoopa V", "num": "GG53/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 15.17, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/477181_in_200x200.jpg"}, {"sku": "EN-86222-1192191-NM-NORM", "set": "Aquapolis", "name": "Houndour (87)", "num": "087/147", "rarity": "Common", "cond": "Near Mint", "print": "Normal", "price": 8.43, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/86222_in_200x200.jpg"}, {"sku": "EN-124015-3242878-NM-HOLO", "set": "XY - Evolutions", "name": "M Venusaur EX", "num": "2/108", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 15.29, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/124015_in_200x200.jpg"}, {"sku": "EN-124066-3243338-NM-HOLO", "set": "XY - Evolutions", "name": "Mew", "num": "53/108", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 34.49, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/124066_in_200x200.jpg"}, {"sku": "EN-87540-2958817-NM-1ED", "set": "Gym Challenge", "name": "Misty's Psyduck", "num": "090/132", "rarity": "Common", "cond": "Near Mint", "print": "1st Edition", "price": 32.13, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/87540_in_200x200.jpg"}, {"sku": "EN-284302-5789130-NM-HOLO", "set": "SWSH11: Lost Origin Trainer Gallery", "name": "Pikachu VMAX (Secret)", "num": "TG29/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 29.06, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284302_in_200x200.jpg"}, {"sku": "EN-274468-5668327-NM-HOLO", "set": "Pokemon GO", "name": "Radiant Blastoise", "num": "018/078", "rarity": "Radiant Rare", "cond": "Near Mint", "print": "Holofoil", "price": 14.26, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/274468_in_200x200.jpg"}, {"sku": "EN-274467-5668322-NM-HOLO", "set": "Pokemon GO", "name": "Radiant Charizard", "num": "011/078", "rarity": "Radiant Rare", "cond": "Near Mint", "print": "Holofoil", "price": 28.19, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/274467_in_200x200.jpg"}, {"sku": "EN-90283-1196252-NM-NORM", "set": "POP Series 3", "name": "Vaporeon", "num": "006/017", "rarity": "Rare", "cond": "Near Mint", "print": "Normal", "price": 29.35, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/90283_in_200x200.jpg"}, {"sku": "EN-253416-5267317-NM-HOLO", "set": "SWSH: Sword & Shield Promo Cards", "name": "Vaporeon V - SWSH181", "num": "SWSH181", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 101.32, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/253416_in_200x200.jpg"}, {"sku": "EN-478758-6944632-SEALED-NORM", "set": "SV01: Scarlet & Violet Base Set", "name": "Scarlet & Violet Pokemon Center Elite Trainer Box (Exclusive) [Koraidon]", "num": null, "rarity": null, "cond": "Unopened", "print": "Normal", "price": 321.54, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478758_in_200x200.jpg"}, {"sku": "EN-478756-6944626-SEALED-NORM", "set": "SV01: Scarlet & Violet Base Set", "name": "Scarlet & Violet Pokemon Center Elite Trainer Box (Exclusive) [Miraidon]", "num": null, "rarity": null, "cond": "Unopened", "print": "Normal", "price": 341.04, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478756_in_200x200.jpg"}, {"sku": "EN-493973-7127189-SEALED-NORM", "set": "SV02: Paldea Evolved", "name": "Paldea Evolved Pokemon Center Elite Trainer Box (Exclusive)", "num": null, "rarity": null, "cond": "Unopened", "print": "Normal", "price": 649.46, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/493973_in_200x200.jpg"}, {"sku": "EN-501266-7228676-SEALED-NORM", "set": "SV03: Obsidian Flames", "name": "Obsidian Flames Pokemon Center Elite Trainer Box (Exclusive)", "num": null, "rarity": null, "cond": "Unopened", "print": "Normal", "price": 779.82, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/501266_in_200x200.jpg"}, {"sku": "EN-501999-7239000-SEALED-NORM", "set": "SV: Scarlet & Violet 151", "name": "151 Pokemon Center Elite Trainer Box (Exclusive)", "num": null, "rarity": null, "cond": "Unopened", "print": "Normal", "price": 1522.35, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/501999_in_200x200.jpg"}, {"sku": "EN-497642-7160203-NM-HOLO", "set": "SV02: Paldea Evolved", "name": "Chien-Pao ex - 236/193", "num": "236/193", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.41, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/497642_in_200x200.jpg"}, {"sku": "EN-250294-5236036-NM-HOLO", "set": "Celebrations: Classic Collection", "name": "Dark Gyarados", "num": "8/82", "rarity": "Classic Collection", "cond": "Near Mint", "print": "Holofoil", "price": 6.86, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/250294_in_200x200.jpg"}, {"sku": "EN-478029-6926415-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Deoxys", "num": "GG12/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 22.86, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478029_in_200x200.jpg"}, {"sku": "EN-487060-7020460-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Dondozo - 207/198", "num": "207/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 17.14, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/487060_in_200x200.jpg"}, {"sku": "EN-523900-7497213-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Garchomp ex - 219/182", "num": "219/182", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 8.18, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523900_in_200x200.jpg"}, {"sku": "EN-452019-6679723-NM-HOLO", "set": "SWSH12: Silver Tempest Trainer Gallery", "name": "Gardevoir", "num": "TG05/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 10.37, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/452019_in_200x200.jpg"}, {"sku": "EN-284268-5788801-NM-HOLO", "set": "SWSH11: Lost Origin Trainer Gallery", "name": "Hisuian Arcanine", "num": "TG08/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.07, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284268_in_200x200.jpg"}, {"sku": "EN-490291-7042652-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Iron Treads ex - 248/198", "num": "248/198", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 7.14, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490291_in_200x200.jpg"}, {"sku": "EN-490089-7041611-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Koraidon ex - 231/198", "num": "231/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.95, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490089_in_200x200.jpg"}, {"sku": "EN-654498-8937915-NM-HOLO", "set": "ME01: Mega Evolution", "name": "Mega Gardevoir ex - 159/132", "num": "159/132", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.46, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/654498_in_200x200.jpg"}, {"sku": "EN-517051-7436777-NM-HOLO", "set": "SV: Scarlet & Violet 151", "name": "Mew ex - 205/165", "num": "205/165", "rarity": "Hyper Rare", "cond": "Near Mint", "print": "Holofoil", "price": 37.33, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/517051_in_200x200.jpg"}, {"sku": "EN-517028-7436652-NM-HOLO", "set": "SV: Scarlet & Violet 151", "name": "Mr. Mime - 179/165", "num": "179/165", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 19.57, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/517028_in_200x200.jpg"}, {"sku": "EN-523936-7497393-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Parasol Lady - 255/182", "num": "255/182", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 19.29, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523936_in_200x200.jpg"}, {"sku": "EN-535108-7700368-NM-HOLO", "set": "SV: Paldean Fates", "name": "Penny", "num": "239/091", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 20.1, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/535108_in_200x200.jpg"}, {"sku": "EN-550212-7911546-NM-HOLO", "set": "SV06: Twilight Masquerade", "name": "Pinsir - 168/167", "num": "168/167", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 19.33, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/550212_in_200x200.jpg"}, {"sku": "EN-497682-7160444-NM-HOLO", "set": "SV02: Paldea Evolved", "name": "Ting-Lu ex - 263/193", "num": "263/193", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 13.26, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/497682_in_200x200.jpg"}, {"sku": "EN-111566-3047377-NM-HOLO", "set": "XY - BREAKpoint", "name": "Togekiss EX", "num": "83/122", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 4.94, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/111566_in_200x200.jpg"}, {"sku": "EN-523873-7497078-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Veluza - 192/182", "num": "192/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 12.28, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523873_in_200x200.jpg"}, {"sku": "EN-123437-3211140-NM-HOLO", "set": "XY Promos", "name": "Victini - XY117", "num": "XY117", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 52.87, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/123437_in_200x200.jpg"}, {"sku": "EN-497676-7160414-NM-HOLO", "set": "SV02: Paldea Evolved", "name": "Wo-Chien ex - 257/193", "num": "257/193", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 19.95, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/497676_in_200x200.jpg"}, {"sku": "EN-478081-6926731-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Zamazenta V", "num": "GG54/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 27.3, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478081_in_200x200.jpg"}, {"sku": "EN-490082-7041576-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Arcanine ex - 224/198", "num": "224/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 17.71, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490082_in_200x200.jpg"}, {"sku": "EN-83855-2742164-NM-HOLO", "set": "Black and White Promos", "name": "Black Kyurem EX - BW62", "num": "BW62", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 7.48, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/83855_in_200x200.jpg"}, {"sku": "EN-219059-4514140-NM-HOLO", "set": "Battle Academy", "name": "Charizard GX - 9/68 (#60 Charizard Stamped)", "num": "009/068", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 14.18, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/219059_in_200x200.jpg"}, {"sku": "EN-223754-4601915-NM-HOLO", "set": "SWSH: Sword & Shield Promo Cards", "name": "Charizard V - SWSH050", "num": "SWSH050", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 14.15, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/223754_in_200x200.jpg"}, {"sku": "EN-486622-7018686-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Dolliv - 200/198", "num": "200/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 8.94, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/486622_in_200x200.jpg"}, {"sku": "EN-218439-4503813-NM-HOLO", "set": "Miscellaneous Cards & Products", "name": "Dragonite - 119/181 (Cosmos Holo)", "num": "119/181", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 6.5, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/218439_in_200x200.jpg"}, {"sku": "EN-676059-9125842-NM-HOLO", "set": "ME: Ascended Heroes", "name": "Dreepy - 247/217", "num": "247/217", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 12.86, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/676059_in_200x200.jpg"}, {"sku": "EN-85270-3007569-MP-RH", "set": "WoTC Promo", "name": "Entei", "num": "34/53", "rarity": "Promo", "cond": "Moderately Played", "print": "Reverse Holofoil", "price": 13.26, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/85270_in_200x200.jpg"}, {"sku": "EN-490290-7042647-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Great Tusk ex - 246/198", "num": "246/198", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 14.91, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490290_in_200x200.jpg"}, {"sku": "EN-662167-8996159-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Grimsley's Move - 120/094", "num": "120/094", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.98, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662167_in_200x200.jpg"}, {"sku": "EN-490083-7041581-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Gyarados ex - 225/198", "num": "225/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 12.84, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490083_in_200x200.jpg"}, {"sku": "EN-623607-8608954-NM-HOLO", "set": "SV09: Journey Together", "name": "Iris's Fighting Spirit - 180/159", "num": "180/159", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.43, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623607_in_200x200.jpg"}, {"sku": "EN-86361-2898312-NM-1EDH", "set": "Neo Genesis", "name": "Jumpluff", "num": "007/111", "rarity": "Holo Rare", "cond": "Near Mint", "print": "1st Edition Holofoil", "price": 48.59, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/86361_in_200x200.jpg"}, {"sku": "EN-534659-7695983-NM-HOLO", "set": "SV: Paldean Fates", "name": "Kirlia - 154/091", "num": "154/091", "rarity": "Shiny Rare", "cond": "Near Mint", "print": "Holofoil", "price": 8.56, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/534659_in_200x200.jpg"}, {"sku": "EN-490721-7060263-NM-HOLO", "set": "SV: Scarlet & Violet Promo Cards", "name": "Koraidon - 014", "num": "014", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 7.39, "qty": 3, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490721_in_200x200.jpg"}, {"sku": "EN-490044-7041414-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Koraidon ex - 247/198", "num": "247/198", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 26.03, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490044_in_200x200.jpg"}, {"sku": "EN-490045-7041419-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Koraidon ex - 254/198", "num": "254/198", "rarity": "Hyper Rare", "cond": "Near Mint", "print": "Holofoil", "price": 8.04, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490045_in_200x200.jpg"}, {"sku": "EN-485260-7013035-NM-HOLO", "set": "Miscellaneous Cards & Products", "name": "Lechonk (Pokemon Center Exclusive)", "num": "155/198", "rarity": "Common", "cond": "Near Mint", "print": "Holofoil", "price": 12.21, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/485260_in_200x200.jpg"}, {"sku": "EN-475642-6914450-NM-HOLO", "set": "SWSH: Sword & Shield Promo Cards", "name": "Lucario VSTAR - SWSH291", "num": "SWSH291", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 14.49, "qty": 4, "img": "https://tcgplayer-cdn.tcgplayer.com/product/475642_in_200x200.jpg"}, {"sku": "EN-42425-2999674-MP-1EDH", "set": "Deck Exclusives", "name": "Machamp - 8/102", "num": "008/102", "rarity": "Holo Rare", "cond": "Moderately Played", "print": "1st Edition Holofoil", "price": 13.05, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/42425_in_200x200.jpg"}, {"sku": "EN-517025-7436637-NM-HOLO", "set": "SV: Scarlet & Violet 151", "name": "Machoke - 177/165", "num": "177/165", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 29.99, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/517025_in_200x200.jpg"}, {"sku": "EN-450295-6658514-NM-HOLO", "set": "SWSH12: Silver Tempest Trainer Gallery", "name": "Mawile V", "num": "TG17/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 14.55, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/450295_in_200x200.jpg"}, {"sku": "EN-246707-5150088-NM-HOLO", "set": "SWSH07: Evolving Skies", "name": "Medicham V (Alternate Full Art)", "num": "186/203", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 23.69, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/246707_in_200x200.jpg"}, {"sku": "EN-662183-8996299-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Mega Charizard X ex - 109/094", "num": "109/094", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 37.91, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662183_in_200x200.jpg"}, {"sku": "EN-662187-8996319-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Mega Heracross ex - 108/094", "num": "108/094", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.38, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662187_in_200x200.jpg"}, {"sku": "EN-654502-8937935-NM-HOLO", "set": "ME01: Mega Evolution", "name": "Mega Latias ex - 163/132", "num": "163/132", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.45, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/654502_in_200x200.jpg"}, {"sku": "EN-662190-8996334-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Mega Lopunny ex - 128/094", "num": "128/094", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 21.23, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662190_in_200x200.jpg"}, {"sku": "EN-535952-7717808-NM-HOLO", "set": "SV: Scarlet & Violet Promo Cards", "name": "Mimikyu - 075", "num": "075", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 17.97, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/535952_in_200x200.jpg"}, {"sku": "EN-523882-7497123-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Minior - 201/182", "num": "201/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 29.82, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523882_in_200x200.jpg"}, {"sku": "EN-490719-7060253-NM-HOLO", "set": "SV: Scarlet & Violet Promo Cards", "name": "Miraidon - 013", "num": "013", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 9.36, "qty": 3, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490719_in_200x200.jpg"}, {"sku": "EN-487061-7020465-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Miriam - 251/198", "num": "251/198", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 32.18, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/487061_in_200x200.jpg"}, {"sku": "EN-497615-7160053-NM-HOLO", "set": "SV02: Paldea Evolved", "name": "Mismagius - 212/193", "num": "212/193", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 48.92, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/497615_in_200x200.jpg"}, {"sku": "EN-87552-2961119-MP-UNLH", "set": "Gym Heroes", "name": "Misty's Tentacruel", "num": "010/132", "rarity": "Holo Rare", "cond": "Moderately Played", "print": "Unlimited Holofoil", "price": 14.67, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/87552_in_200x200.jpg"}, {"sku": "EN-623602-8608929-NM-HOLO", "set": "SV09: Journey Together", "name": "N's Zoroark ex - 175/159", "num": "175/159", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 4.62, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623602_in_200x200.jpg"}, {"sku": "EN-490068-7041506-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Pachirisu - 208/198", "num": "208/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 23.19, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490068_in_200x200.jpg"}, {"sku": "EN-497624-7160098-NM-HOLO", "set": "SV02: Paldea Evolved", "name": "Paldean Wooper - 221/193", "num": "221/193", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 16.1, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/497624_in_200x200.jpg"}, {"sku": "EN-250303-5236081-NM-HOLO", "set": "Celebrations", "name": "Pikachu", "num": "005/025", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 7.25, "qty": 3, "img": "https://tcgplayer-cdn.tcgplayer.com/product/250303_in_200x200.jpg"}, {"sku": "EN-264227-5460068-NM-HOLO", "set": "SWSH09: Brilliant Stars Trainer Gallery", "name": "Rapid Strike Urshifu VMAX", "num": "TG21/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 12.07, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/264227_in_200x200.jpg"}, {"sku": "EN-656260-8948230-NM-HOLO", "set": "ME: Mega Evolution Promo", "name": "Riolu - 010", "num": "010", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 11.77, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/656260_in_200x200.jpg"}, {"sku": "EN-88887-1194856-NM-UNL", "set": "Gym Challenge", "name": "Sabrina's Psyduck", "num": "099/132", "rarity": "Common", "cond": "Near Mint", "print": "Unlimited", "price": 11.13, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/88887_in_200x200.jpg"}, {"sku": "EN-232527-4780275-NM-HOLO", "set": "Shining Fates", "name": "Skyla (Full Art)", "num": "072/072", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 12.77, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/232527_in_200x200.jpg"}, {"sku": "EN-490079-7041561-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Starly - 221/198", "num": "221/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 16.17, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490079_in_200x200.jpg"}, {"sku": "EN-201358-4257525-NM-HOLO", "set": "SM - Cosmic Eclipse", "name": "Steelix (Secret)", "num": "247/236", "rarity": "Secret Rare", "cond": "Near Mint", "print": "Holofoil", "price": 21.38, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/201358_in_200x200.jpg"}, {"sku": "EN-523894-7497183-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Swablu - 213/182", "num": "213/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 34.42, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523894_in_200x200.jpg"}, {"sku": "EN-100511-2902297-NM-HOLO", "set": "XY Promos", "name": "Swampert EX - XY55", "num": "XY55", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 10.97, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/100511_in_200x200.jpg"}, {"sku": "EN-490293-7042662-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Tarountula - 199/198", "num": "199/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 17.26, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490293_in_200x200.jpg"}, {"sku": "EN-552785-7944489-NM-HOLO", "set": "SV: Scarlet & Violet Promo Cards", "name": "Teal Mask Ogerpon - 123", "num": "123", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 1.6, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/552785_in_200x200.jpg"}, {"sku": "EN-633008-8728083-NM-HOLO", "set": "SV10: Destined Rivals", "name": "Team Rocket's Moltres ex - 208/182", "num": "208/182", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.26, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/633008_in_200x200.jpg"}, {"sku": "EN-125079-3250261-NM-HOLO", "set": "Deck Exclusives", "name": "Tyranitar - 30/100 (DP Stormfront)", "num": "030/100", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 23.75, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/125079_in_200x200.jpg"}, {"sku": "EN-246720-5150153-NM-HOLO", "set": "SWSH07: Evolving Skies", "name": "Umbreon VMAX", "num": "095/203", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 37.04, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/246720_in_200x200.jpg"}, {"sku": "EN-264211-5459988-NM-HOLO", "set": "SWSH09: Brilliant Stars Trainer Gallery", "name": "Vaporeon", "num": "TG02/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 30.5, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/264211_in_200x200.jpg"}, {"sku": "EN-633001-8728048-NM-HOLO", "set": "SV10: Destined Rivals", "name": "Zamazenta - 201/182", "num": "201/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.01, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/633001_in_200x200.jpg"}, {"sku": "EN-124055-3243233-NM-HOLO", "set": "XY - Evolutions", "name": "Zapdos", "num": "42/108", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.26, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/124055_in_200x200.jpg"}, {"sku": "EN-250325-5236191-NM-HOLO", "set": "Celebrations: Classic Collection", "name": "______'s Pikachu", "num": "24/53", "rarity": "Classic Collection", "cond": "Near Mint", "print": "Holofoil", "price": 43.64, "qty": 3, "img": "https://tcgplayer-cdn.tcgplayer.com/product/250325_in_200x200.jpg"}, {"sku": "EN-84612-1190581-NM-NORM", "set": "Team Rocket Returns", "name": "Dark Houndoom - 037/109", "num": "37/109", "rarity": "Uncommon", "cond": "Near Mint", "print": "Normal", "price": 21.76, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/84612_in_200x200.jpg"}, {"sku": "EN-284266-5788791-NM-HOLO", "set": "SWSH11: Lost Origin Trainer Gallery", "name": "Gengar", "num": "TG06/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 68.76, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284266_in_200x200.jpg"}, {"sku": "EN-623238-8606478-NM-HOLO", "set": "SV: Scarlet & Violet Promo Cards", "name": "Hop's Snorlax - 184 (Prerelease)", "num": "184", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 22.29, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623238_in_200x200.jpg"}, {"sku": "EN-42445-2994323-NM-HOLO", "set": "Base Set 2", "name": "Mewtwo", "num": "010/130", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 64.79, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/42445_in_200x200.jpg"}, {"sku": "EN-523875-7497088-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Minun - 194/182", "num": "194/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 55.07, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523875_in_200x200.jpg"}, {"sku": "EN-88319-1232373-NM-HOLO", "set": "Plasma Blast", "name": "Porygon-Z (Team Plasma)", "num": "74/101", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 4.24, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/88319_in_200x200.jpg"}, {"sku": "EN-88817-2877089-NM-HOLO", "set": "Dragon", "name": "Roselia", "num": "9/97", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 14.52, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/88817_in_200x200.jpg"}, {"sku": "EN-90109-1196078-NM-NORM", "set": "Call of Legends", "name": "Typhlosion", "num": "35/95", "rarity": "Rare", "cond": "Near Mint", "print": "Normal", "price": 5.98, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/90109_in_200x200.jpg"}, {"sku": "EN-90105-1261848-NM-HOLO", "set": "Mysterious Treasures", "name": "Typhlosion", "num": "16/123", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 41.23, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/90105_in_200x200.jpg"}, {"sku": "EN-113767-3086015-NM-HOLO", "set": "Generations: Radiant Collection", "name": "Altaria", "num": "RC24/RC32", "rarity": "Uncommon", "cond": "Near Mint", "print": "Holofoil", "price": 28.41, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/113767_in_200x200.jpg"}, {"sku": "EN-693446-9283067-NM-HOLO", "set": "ME04: Chaos Rising", "name": "Ampharos - 090/086", "num": "090/086", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 12.01, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/693446_in_200x200.jpg"}, {"sku": "EN-83594-1247640-NM-HOLO", "set": "Arceus", "name": "Arceus (AR3)", "num": "AR3", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 36.51, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/83594_in_200x200.jpg"}, {"sku": "EN-490063-7041486-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Armarouge - 203/198", "num": "203/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 20.08, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490063_in_200x200.jpg"}, {"sku": "EN-83851-1189820-NM-NORM", "set": "Boundaries Crossed", "name": "Black Kyurem", "num": "100/149", "rarity": "Rare", "cond": "Near Mint", "print": "Normal", "price": 1.17, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/83851_in_200x200.jpg"}, {"sku": "EN-83910-1249433-NM-HOLO", "set": "Platinum", "name": "Blaziken", "num": "3/127", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 25.7, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/83910_in_200x200.jpg"}, {"sku": "EN-534483-7694176-NM-HOLO", "set": "SV: Paldean Fates", "name": "Charmander - 109/091", "num": "109/091", "rarity": "Shiny Rare", "cond": "Near Mint", "print": "Holofoil", "price": 69.84, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/534483_in_200x200.jpg"}, {"sku": "EN-509949-7337193-NM-HOLO", "set": "SV03: Obsidian Flames", "name": "Cleffa - 202/197", "num": "202/197", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 48.2, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/509949_in_200x200.jpg"}, {"sku": "EN-84571-2873462-NM-HOLO", "set": "Hidden Legends", "name": "Dark Celebi", "num": "4/101", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 62.67, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/84571_in_200x200.jpg"}, {"sku": "EN-84659-2897182-NM-UNLH", "set": "Neo Destiny", "name": "Dark Typhlosion", "num": "010/105", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Unlimited Holofoil", "price": 93.68, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/84659_in_200x200.jpg"}, {"sku": "EN-662150-8996019-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Dawn - 129/094", "num": "129/094", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 32.79, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662150_in_200x200.jpg"}, {"sku": "EN-98069-2873803-NM-HOLO", "set": "XY - Roaring Skies", "name": "Deoxys", "num": "33/108", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.99, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/98069_in_200x200.jpg"}, {"sku": "EN-131319-3367202-NM-NORM", "set": "Deck Exclusives", "name": "Dragonite - 52/108 (XY Roaring Skies)", "num": "052/108", "rarity": "Rare", "cond": "Near Mint", "print": "Normal", "price": 12.39, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/131319_in_200x200.jpg"}, {"sku": "EN-509944-7337163-NM-HOLO", "set": "SV03: Obsidian Flames", "name": "Gloom - 198/197", "num": "198/197", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 31.17, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/509944_in_200x200.jpg"}, {"sku": "EN-97997-2872527-NM-NORM", "set": "XY Trainer Kit: Sylveon & Noivern", "name": "Gourgeist", "num": "2/30", "rarity": "Common", "cond": "Near Mint", "print": "Normal", "price": 1.43, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/97997_in_200x200.jpg"}, {"sku": "EN-478078-6926716-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Hisuian Samurott V", "num": "GG51/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 22.37, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478078_in_200x200.jpg"}, {"sku": "EN-648660-8882146-NM-HOLO", "set": "Prize Pack Series Cards", "name": "Hop's Zacian ex - 111/159", "num": "111/159", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.25, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/648660_in_200x200.jpg"}, {"sku": "EN-526657-7561562-NM-HOLO", "set": "SV: Scarlet & Violet Promo Cards", "name": "Iron Bundle - 066 (Pokemon Center Exclusive)", "num": "066", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 35.46, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/526657_in_200x200.jpg"}, {"sku": "EN-86325-2875799-NM-HOLO", "set": "Hidden Legends", "name": "Jirachi", "num": "8/101", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 35.5, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/86325_in_200x200.jpg"}, {"sku": "EN-127132-3263387-NM-HOLO", "set": "XY Promos", "name": "Jirachi - XY195", "num": "XY195", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 15.88, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/127132_in_200x200.jpg"}, {"sku": "EN-490072-7041526-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Kirlia - 212/198", "num": "212/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 58.73, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490072_in_200x200.jpg"}, {"sku": "EN-86666-1192635-NM-NORM", "set": "POP Series 7", "name": "Latios", "num": "004/017", "rarity": "Rare", "cond": "Near Mint", "print": "Normal", "price": 29.15, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/86666_in_200x200.jpg"}, {"sku": "EN-87394-1193363-NM-NORM", "set": "WoTC Promo", "name": "Mew (8)", "num": "08/53", "rarity": "Promo", "cond": "Near Mint", "print": "Normal", "price": 11.75, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/87394_in_200x200.jpg"}, {"sku": "EN-535953-7717813-NM-HOLO", "set": "SV: Scarlet & Violet Promo Cards", "name": "Mimikyu - 075 (Pokemon Center Exclusive)", "num": "075", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 85.98, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/535953_in_200x200.jpg"}, {"sku": "EN-87561-1259482-NM-HOLO", "set": "Majestic Dawn", "name": "Moltres", "num": "10/100", "rarity": "Holo Rare", "cond": "Near Mint", "print": "Holofoil", "price": 53.44, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/87561_in_200x200.jpg"}, {"sku": "EN-95967-1282204-NM-NORM", "set": "XY - Primal Clash", "name": "Nidoqueen (Omega)", "num": "69/160", "rarity": "Rare", "cond": "Near Mint", "print": "Normal", "price": 3.23, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/95967_in_200x200.jpg"}, {"sku": "EN-500263-7221029-NM-HOLO", "set": "SV: Scarlet & Violet Promo Cards", "name": "Pikachu - 027", "num": "027", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 27.15, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/500263_in_200x200.jpg"}, {"sku": "EN-517034-7436692-NM-HOLO", "set": "SV: Scarlet & Violet 151", "name": "Poliwhirl - 176/165", "num": "176/165", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 65.12, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/517034_in_200x200.jpg"}, {"sku": "EN-214240-4429867-NM-HOLO", "set": "SWSH: Sword & Shield Promo Cards", "name": "Rayquaza - SWSH029", "num": "SWSH029", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 10.92, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/214240_in_200x200.jpg"}, {"sku": "EN-526655-7561552-NM-HOLO", "set": "SV: Scarlet & Violet Promo Cards", "name": "Scream Tail - 065 (Pokemon Center Exclusive)", "num": "065", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 46.73, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/526655_in_200x200.jpg"}, {"sku": "EN-490064-7041491-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Slowpoke - 204/198", "num": "204/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 52.97, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490064_in_200x200.jpg"}, {"sku": "EN-535193-7700791-NM-HOLO", "set": "SV: Paldean Fates", "name": "Snorlax", "num": "202/091", "rarity": "Shiny Rare", "cond": "Near Mint", "print": "Holofoil", "price": 77.94, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/535193_in_200x200.jpg"}, {"sku": "EN-693553-9283927-NM-HOLO", "set": "ME04: Chaos Rising", "name": "Tauros - 096/086", "num": "096/086", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.47, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/693553_in_200x200.jpg"}, {"sku": "EN-90291-1196260-NM-NORM", "set": "Plasma Freeze", "name": "Vaporeon (Team Plasma)", "num": "20/116", "rarity": "Uncommon", "cond": "Near Mint", "print": "Normal", "price": 4.88, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/90291_in_200x200.jpg"}, {"sku": "EN-693560-9283987-NM-HOLO", "set": "ME04: Chaos Rising", "name": "Watchog - 097/086", "num": "097/086", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.72, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/693560_in_200x200.jpg"}, {"sku": "EN-523886-7497143-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Yveltal - 205/182", "num": "205/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 40.1, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523886_in_200x200.jpg"}, {"sku": "EN-264216-5460013-NM-HOLO", "set": "SWSH09: Brilliant Stars Trainer Gallery", "name": "Alcremie", "num": "TG08/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 4.39, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/264216_in_200x200.jpg"}, {"sku": "EN-284267-5788796-NM-HOLO", "set": "SWSH11: Lost Origin Trainer Gallery", "name": "Banette", "num": "TG07/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.74, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284267_in_200x200.jpg"}, {"sku": "EN-654506-8937955-NM-HOLO", "set": "ME01: Mega Evolution", "name": "Buddy-Buddy Poffin", "num": "167/132", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 7.0, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/654506_in_200x200.jpg"}, {"sku": "EN-666538-9035799-NM-HOLO", "set": "ME: Mega Evolution Promo", "name": "Charcadet - 022", "num": "022", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 3.0, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/666538_in_200x200.jpg"}, {"sku": "EN-623538-8608379-NM-HOLO", "set": "SV09: Journey Together", "name": "Hop's Zacian ex - 111/159", "num": "111/159", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.64, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623538_in_200x200.jpg"}, {"sku": "EN-662170-8996184-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Ignition Energy", "num": "124/094", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.59, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662170_in_200x200.jpg"}, {"sku": "EN-490094-7041636-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Jacq - 236/198", "num": "236/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.32, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490094_in_200x200.jpg"}, {"sku": "EN-654478-8937815-NM-HOLO", "set": "ME01: Mega Evolution", "name": "Litleo - 139/132", "num": "139/132", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.37, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/654478_in_200x200.jpg"}, {"sku": "EN-654433-8937410-NM-HOLO", "set": "ME01: Mega Evolution", "name": "Mega Mawile ex - 094/132", "num": "094/132", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.65, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/654433_in_200x200.jpg"}, {"sku": "EN-675949-9124947-NM-HOLO", "set": "ME: Ascended Heroes", "name": "N's Zoroark ex - 137/217", "num": "137/217", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.2, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/675949_in_200x200.jpg"}, {"sku": "EN-623521-8608219-NM-HOLO", "set": "SV09: Journey Together", "name": "Paldean Clodsire ex", "num": "094/159", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.57, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623521_in_200x200.jpg"}, {"sku": "EN-490098-7041656-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Professor's Research - 240/198", "num": "240/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.2, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490098_in_200x200.jpg"}, {"sku": "EN-451394-6667354-NM-HOLO", "set": "SWSH12: Silver Tempest", "name": "Radiant Alakazam", "num": "059/195", "rarity": "Radiant Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.27, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/451394_in_200x200.jpg"}, {"sku": "EN-283945-5786332-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Radiant Gardevoir", "num": "069/196", "rarity": "Radiant Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.63, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/283945_in_200x200.jpg"}, {"sku": "EN-272282-5594262-NM-HOLO", "set": "SWSH10: Astral Radiance", "name": "Radiant Hawlucha", "num": "081/189", "rarity": "Radiant Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.76, "qty": 10, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272282_in_200x200.jpg"}, {"sku": "EN-272227-5593756-NM-HOLO", "set": "SWSH10: Astral Radiance", "name": "Radiant Heatran", "num": "027/189", "rarity": "Radiant Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.58, "qty": 13, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272227_in_200x200.jpg"}, {"sku": "EN-284031-5786767-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Radiant Hisuian Sneasler", "num": "123/196", "rarity": "Radiant Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.64, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284031_in_200x200.jpg"}, {"sku": "EN-284032-5786772-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Radiant Steelix", "num": "124/196", "rarity": "Radiant Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.24, "qty": 6, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284032_in_200x200.jpg"}, {"sku": "EN-451645-6670242-NM-HOLO", "set": "SWSH12: Silver Tempest", "name": "Radiant Tsareena", "num": "016/195", "rarity": "Radiant Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.65, "qty": 5, "img": "https://tcgplayer-cdn.tcgplayer.com/product/451645_in_200x200.jpg"}, {"sku": "EN-250299-5236061-NM-HOLO", "set": "Celebrations", "name": "Zamazenta V", "num": "018/025", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.83, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/250299_in_200x200.jpg"}, {"sku": "EN-283980-5786507-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Aerodactyl V", "num": "092/196", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.18, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/283980_in_200x200.jpg"}, {"sku": "EN-623438-8607444-NM-HOLO", "set": "SV09: Journey Together", "name": "Amoonguss ex", "num": "011/159", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.59, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623438_in_200x200.jpg"}, {"sku": "EN-623588-8608859-NM-HOLO", "set": "SV09: Journey Together", "name": "Articuno - 161/159", "num": "161/159", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 27.7, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623588_in_200x200.jpg"}, {"sku": "EN-276962-5706665-NM-HOLO", "set": "Pokemon GO", "name": "Dragonite V", "num": "049/078", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 4.54, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/276962_in_200x200.jpg"}, {"sku": "EN-219431-4516980-NM-HOLO", "set": "SWSH03: Darkness Ablaze", "name": "Eternatus V", "num": "116/189", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.52, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/219431_in_200x200.jpg"}, {"sku": "EN-632858-8726763-NM-HOLO", "set": "SV10: Destined Rivals", "name": "Ethan's Ho-Oh ex - 039/182", "num": "039/182", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.77, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/632858_in_200x200.jpg"}, {"sku": "EN-272295-5594372-NM-HOLO", "set": "SWSH10: Astral Radiance", "name": "Hisuian Sneasler V", "num": "094/189", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.97, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272295_in_200x200.jpg"}, {"sku": "EN-623615-8608994-NM-HOLO", "set": "SV09: Journey Together", "name": "Iono's Bellibolt ex - 188/159", "num": "188/159", "rarity": "Hyper Rare", "cond": "Near Mint", "print": "Holofoil", "price": 21.63, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623615_in_200x200.jpg"}, {"sku": "EN-623590-8608869-NM-HOLO", "set": "SV09: Journey Together", "name": "Iono's Kilowattrel - 163/159", "num": "163/159", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.4, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623590_in_200x200.jpg"}, {"sku": "EN-273938-5661754-NM-HOLO", "set": "SWSH: Sword & Shield Promo Cards", "name": "Kleavor V (Full Art) - SWSH248", "num": "SWSH248", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 1.18, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/273938_in_200x200.jpg"}, {"sku": "EN-684329-9190194-NM-HOLO", "set": "ME03: Perfect Order", "name": "Lapras ex", "num": "022/088", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.59, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/684329_in_200x200.jpg"}, {"sku": "EN-623483-8607859-NM-HOLO", "set": "SV09: Journey Together", "name": "Lillie's Clefairy ex - 056/159", "num": "056/159", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.64, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623483_in_200x200.jpg"}, {"sku": "EN-283930-5786252-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Magnezone V", "num": "056/196", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.73, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/283930_in_200x200.jpg"}, {"sku": "EN-623506-8608074-NM-HOLO", "set": "SV09: Journey Together", "name": "Mamoswine ex - 079/159", "num": "079/159", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.56, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623506_in_200x200.jpg"}, {"sku": "EN-680639-9169213-NM-HOLO", "set": "ME: Mega Evolution Promo", "name": "Mega Charizard X ex - 029", "num": "029", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 7.78, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/680639_in_200x200.jpg"}, {"sku": "EN-660380-8973001-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Mega Gengar ex", "num": "056/094", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.9, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/660380_in_200x200.jpg"}, {"sku": "EN-662189-8996329-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Mega Lopunny ex - 115/094", "num": "115/094", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.76, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662189_in_200x200.jpg"}, {"sku": "EN-623496-8607984-NM-HOLO", "set": "SV09: Journey Together", "name": "Mimikyu ex", "num": "069/159", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.65, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623496_in_200x200.jpg"}, {"sku": "EN-662199-8996399-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Mismagius ex - 036/094", "num": "036/094", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.5, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662199_in_200x200.jpg"}, {"sku": "EN-662204-8996439-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Nymble - 096/094", "num": "096/094", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.88, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662204_in_200x200.jpg"}, {"sku": "EN-478150-6927205-NM-HOLO", "set": "SWSH: Crown Zenith", "name": "Rotom V", "num": "045/159", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.05, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478150_in_200x200.jpg"}, {"sku": "EN-246697-5150038-NM-HOLO", "set": "SWSH07: Evolving Skies", "name": "Sylveon V", "num": "074/203", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.76, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/246697_in_200x200.jpg"}, {"sku": "EN-623478-8607819-NM-HOLO", "set": "SV09: Journey Together", "name": "Tapu Koko ex", "num": "051/159", "rarity": "Double Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.64, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623478_in_200x200.jpg"}, {"sku": "EN-272472-5595476-NM-HOLO", "set": "SWSH10: Astral Radiance Trainer Gallery", "name": "Abomasnow", "num": "TG01/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.71, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272472_in_200x200.jpg"}, {"sku": "EN-282255-5737869-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Aerodactyl VSTAR", "num": "093/196", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.17, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/282255_in_200x200.jpg"}, {"sku": "EN-272496-5595596-NM-HOLO", "set": "SWSH10: Astral Radiance Trainer Gallery", "name": "Allister", "num": "TG24/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.74, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272496_in_200x200.jpg"}, {"sku": "EN-490292-7042657-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Arven - 249/198", "num": "249/198", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.7, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490292_in_200x200.jpg"}, {"sku": "EN-517053-7436787-NM-HOLO", "set": "SV: Scarlet & Violet 151", "name": "Basic Psychic Energy - 207/165", "num": "207/165", "rarity": "Hyper Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.8, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/517053_in_200x200.jpg"}, {"sku": "EN-451997-6679508-NM-HOLO", "set": "SWSH12: Silver Tempest", "name": "Brandon (Secret)", "num": "203/195", "rarity": "Secret Rare", "cond": "Near Mint", "print": "Holofoil", "price": 9.83, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/451997_in_200x200.jpg"}, {"sku": "EN-272454-5595386-NM-HOLO", "set": "SWSH10: Astral Radiance", "name": "Choy (Secret)", "num": "200/189", "rarity": "Secret Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.95, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272454_in_200x200.jpg"}, {"sku": "EN-497664-7160358-NM-HOLO", "set": "SV02: Paldea Evolved", "name": "Clavell - 249/193", "num": "249/193", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.07, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/497664_in_200x200.jpg"}, {"sku": "EN-284160-5787407-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Colress's Experiment (Secret)", "num": "205/196", "rarity": "Secret Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.85, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284160_in_200x200.jpg"}, {"sku": "EN-517042-7436732-NM-HOLO", "set": "SV: Scarlet & Violet 151", "name": "Daisy's Help - 195/165", "num": "195/165", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.32, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/517042_in_200x200.jpg"}, {"sku": "EN-284021-5786712-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Drapion VSTAR", "num": "119/196", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.3, "qty": 8, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284021_in_200x200.jpg"}, {"sku": "EN-509967-7337288-NM-HOLO", "set": "SV03: Obsidian Flames", "name": "Geeta - 218/197", "num": "218/197", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.25, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/509967_in_200x200.jpg"}, {"sku": "EN-478091-6926792-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Grant", "num": "GG62/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.75, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478091_in_200x200.jpg"}, {"sku": "EN-272435-5595291-NM-HOLO", "set": "SWSH10: Astral Radiance", "name": "Grant (Full Art)", "num": "185/189", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.79, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272435_in_200x200.jpg"}, {"sku": "EN-253287-5266375-NM-HOLO", "set": "SWSH08: Fusion Strike", "name": "Grass Energy (Secret)", "num": "283/264", "rarity": "Secret Rare", "cond": "Near Mint", "print": "Holofoil", "price": 12.47, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/253287_in_200x200.jpg"}, {"sku": "EN-272285-5594282-NM-HOLO", "set": "SWSH10: Astral Radiance", "name": "Hisuian Decidueye VSTAR", "num": "084/189", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.71, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272285_in_200x200.jpg"}, {"sku": "EN-284059-5786899-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Hisuian Goodra VSTAR", "num": "136/196", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.53, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284059_in_200x200.jpg"}, {"sku": "EN-284145-5787332-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Iscan (Full Art)", "num": "192/196", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.49, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284145_in_200x200.jpg"}, {"sku": "EN-490289-7042642-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Jacq - 250/198", "num": "250/198", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.15, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490289_in_200x200.jpg"}, {"sku": "EN-272437-5595301-NM-HOLO", "set": "SWSH10: Astral Radiance", "name": "Kamado (Full Art)", "num": "187/189", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.89, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272437_in_200x200.jpg"}, {"sku": "EN-490095-7041641-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Katy - 237/198", "num": "237/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.74, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490095_in_200x200.jpg"}, {"sku": "EN-273939-5661759-NM-HOLO", "set": "SWSH: Sword & Shield Promo Cards", "name": "Kleavor VSTAR - SWSH249", "num": "SWSH249", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 1.12, "qty": 3, "img": "https://tcgplayer-cdn.tcgplayer.com/product/273939_in_200x200.jpg"}, {"sku": "EN-283931-5786257-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Magnezone VSTAR", "num": "057/196", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.25, "qty": 7, "img": "https://tcgplayer-cdn.tcgplayer.com/product/283931_in_200x200.jpg"}, {"sku": "EN-451725-6670862-NM-HOLO", "set": "SWSH12: Silver Tempest", "name": "Mawile VSTAR", "num": "071/195", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.42, "qty": 4, "img": "https://tcgplayer-cdn.tcgplayer.com/product/451725_in_200x200.jpg"}, {"sku": "EN-523917-7497298-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Mela - 236/182", "num": "236/182", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.29, "qty": 3, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523917_in_200x200.jpg"}, {"sku": "EN-272499-5595611-NM-HOLO", "set": "SWSH10: Astral Radiance Trainer Gallery", "name": "Milo", "num": "TG27/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.48, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272499_in_200x200.jpg"}, {"sku": "EN-490096-7041646-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Miriam - 238/198", "num": "238/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.66, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490096_in_200x200.jpg"}, {"sku": "EN-284164-5787427-NM-HOLO", "set": "SWSH11: Lost Origin", "name": "Miss Fortune Sisters (Secret)", "num": "209/196", "rarity": "Secret Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.42, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284164_in_200x200.jpg"}, {"sku": "EN-534754-7697428-NM-HOLO", "set": "SV: Paldean Fates", "name": "Nemona - 229/091", "num": "229/091", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.02, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/534754_in_200x200.jpg"}, {"sku": "EN-490297-7042682-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Nest Ball - 255/198", "num": "255/198", "rarity": "Hyper Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.95, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490297_in_200x200.jpg"}, {"sku": "EN-534757-7697443-NM-HOLO", "set": "SV: Paldean Fates", "name": "Paldean Student - 230/091", "num": "230/091", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.86, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/534757_in_200x200.jpg"}, {"sku": "EN-534758-7697448-NM-HOLO", "set": "SV: Paldean Fates", "name": "Paldean Student - 231/091", "num": "231/091", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 0.63, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/534758_in_200x200.jpg"}, {"sku": "EN-490041-7041403-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Penny - 252/198", "num": "252/198", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 7.3, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490041_in_200x200.jpg"}, {"sku": "EN-241853-5035435-NM-HOLO", "set": "SWSH06: Chilling Reign", "name": "Peonia (Full Art)", "num": "196/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 11.76, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/241853_in_200x200.jpg"}, {"sku": "EN-272500-5595616-NM-HOLO", "set": "SWSH10: Astral Radiance Trainer Gallery", "name": "Piers", "num": "TG28/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.82, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272500_in_200x200.jpg"}, {"sku": "EN-523937-7497398-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Professor Sada's Vitality - 256/182", "num": "256/182", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 9.91, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523937_in_200x200.jpg"}, {"sku": "EN-490099-7041661-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Professor's Research - 241/198", "num": "241/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.02, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490099_in_200x200.jpg"}, {"sku": "EN-478095-6926812-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Raihan", "num": "GG65/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.29, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478095_in_200x200.jpg"}, {"sku": "EN-523922-7497323-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Rika - 241/182", "num": "241/182", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.72, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523922_in_200x200.jpg"}, {"sku": "EN-232529-4780290-NM-HOLO", "set": "Shining Fates", "name": "Rose (Full Art)", "num": "071/072", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.34, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/232529_in_200x200.jpg"}, {"sku": "EN-497670-7160388-NM-HOLO", "set": "SV02: Paldea Evolved", "name": "Saguaro - 255/193", "num": "255/193", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.38, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/497670_in_200x200.jpg"}, {"sku": "EN-523924-7497333-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Shauntal - 243/182", "num": "243/182", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.06, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523924_in_200x200.jpg"}, {"sku": "EN-263611-5448418-NM-HOLO", "set": "SWSH09: Brilliant Stars", "name": "Shaymin VSTAR", "num": "014/172", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.53, "qty": 5, "img": "https://tcgplayer-cdn.tcgplayer.com/product/263611_in_200x200.jpg"}, {"sku": "EN-241862-5035500-NM-HOLO", "set": "SWSH06: Chilling Reign", "name": "Siebold (Full Art)", "num": "198/198", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.91, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/241862_in_200x200.jpg"}, {"sku": "EN-234076-4817204-NM-HOLO", "set": "SWSH05: Battle Styles", "name": "Single Strike Style Mustard (Full Art)", "num": "163/163", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.65, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/234076_in_200x200.jpg"}, {"sku": "EN-452047-6680038-NM-HOLO", "set": "SWSH12: Silver Tempest Trainer Gallery", "name": "Sordward & Shielbert", "num": "TG28/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.3, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/452047_in_200x200.jpg"}, {"sku": "EN-517052-7436782-NM-HOLO", "set": "SV: Scarlet & Violet 151", "name": "Switch - 206/165", "num": "206/165", "rarity": "Hyper Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.5, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/517052_in_200x200.jpg"}, {"sku": "EN-523940-7497413-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Tulip - 259/182", "num": "259/182", "rarity": "Special Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 9.58, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523940_in_200x200.jpg"}, {"sku": "EN-219317-4516055-NM-HOLO", "set": "SWSH03: Darkness Ablaze", "name": "Turbo Patch (Secret)", "num": "200/189", "rarity": "Secret Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.98, "qty": 3, "img": "https://tcgplayer-cdn.tcgplayer.com/product/219317_in_200x200.jpg"}, {"sku": "EN-452013-6679693-NM-HOLO", "set": "SWSH12: Silver Tempest", "name": "V Guard Energy (Secret)", "num": "215/195", "rarity": "Secret Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.07, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/452013_in_200x200.jpg"}, {"sku": "EN-263815-5449753-NM-HOLO", "set": "SWSH09: Brilliant Stars", "name": "Aggron VMAX", "num": "097/172", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.42, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/263815_in_200x200.jpg"}, {"sku": "EN-149100-3527932-NM-HOLO", "set": "SM - Crimson Invasion", "name": "Alolan Exeggutor GX", "num": "74/111", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.63, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/149100_in_200x200.jpg"}, {"sku": "EN-662128-8995819-NM-HOLO", "set": "ME02: Phantasmal Flames", "name": "Ambipom - 107/094", "num": "107/094", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.73, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/662128_in_200x200.jpg"}, {"sku": "EN-264204-5459953-NM-HOLO", "set": "SWSH09: Brilliant Stars Trainer Gallery", "name": "Ariados", "num": "TG09/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.64, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/264204_in_200x200.jpg"}, {"sku": "EN-272482-5595526-NM-HOLO", "set": "SWSH10: Astral Radiance Trainer Gallery", "name": "Bronzong", "num": "TG11/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.4, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272482_in_200x200.jpg"}, {"sku": "EN-490066-7041496-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Clauncher - 205/198", "num": "205/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 9.55, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490066_in_200x200.jpg"}, {"sku": "EN-138578-3443589-NM-HOLO", "set": "SM - Burning Shadows", "name": "Darkrai GX", "num": "88/147", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 8.27, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/138578_in_200x200.jpg"}, {"sku": "EN-478030-6926420-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Diancie", "num": "GG13/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.15, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478030_in_200x200.jpg"}, {"sku": "EN-475445-6910170-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Ditto", "num": "GG22/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 22.09, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/475445_in_200x200.jpg"}, {"sku": "EN-684380-9190579-NM-HOLO", "set": "ME03: Perfect Order", "name": "Doublade - 098/088", "num": "098/088", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.68, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/684380_in_200x200.jpg"}, {"sku": "EN-478041-6926480-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Dunsparce", "num": "GG23/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 4.87, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478041_in_200x200.jpg"}, {"sku": "EN-523890-7497163-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Ferrothorn - 209/182", "num": "209/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.48, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523890_in_200x200.jpg"}, {"sku": "EN-497611-7160033-NM-HOLO", "set": "SV02: Paldea Evolved", "name": "Frigibax - 208/193", "num": "208/193", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 26.85, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/497611_in_200x200.jpg"}, {"sku": "EN-138294-3442483-NM-HOLO", "set": "SM - Burning Shadows", "name": "Golisopod GX", "num": "17/147", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 1.82, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/138294_in_200x200.jpg"}, {"sku": "EN-497616-7160058-NM-HOLO", "set": "SV02: Paldea Evolved", "name": "Gothorita - 213/193", "num": "213/193", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 14.84, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/497616_in_200x200.jpg"}, {"sku": "EN-197875-4170480-NM-HOLO", "set": "SM Promos", "name": "Gyarados GX - SM212", "num": "SM212", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 3.93, "qty": 4, "img": "https://tcgplayer-cdn.tcgplayer.com/product/197875_in_200x200.jpg"}, {"sku": "EN-246724-5150173-NM-HOLO", "set": "SWSH07: Evolving Skies", "name": "Gyarados VMAX", "num": "029/203", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 10.91, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/246724_in_200x200.jpg"}, {"sku": "EN-477468-6923631-NM-HOLO", "set": "SWSH: Crown Zenith", "name": "Hatterene VMAX", "num": "066/159", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.19, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/477468_in_200x200.jpg"}, {"sku": "EN-478039-6926470-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Hisuian Goodra", "num": "GG21/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.76, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478039_in_200x200.jpg"}, {"sku": "EN-478017-6926355-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Hisuian Voltorb", "num": "GG01/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.1, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478017_in_200x200.jpg"}, {"sku": "EN-272501-5595621-NM-HOLO", "set": "SWSH10: Astral Radiance Trainer Gallery", "name": "Ice Rider Calyrex VMAX (Secret)", "num": "TG29/TG30", "rarity": "Secret Rare", "cond": "Near Mint", "print": "Holofoil", "price": 5.04, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272501_in_200x200.jpg"}, {"sku": "EN-523868-7497053-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Iron Moth - 187/182", "num": "187/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 9.92, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523868_in_200x200.jpg"}, {"sku": "EN-523877-7497098-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Joltik - 196/182", "num": "196/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 31.45, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523877_in_200x200.jpg"}, {"sku": "EN-478024-6926390-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Keldeo", "num": "GG07/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 22.8, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478024_in_200x200.jpg"}, {"sku": "EN-490075-7041541-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Klawf - 217/198", "num": "217/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.78, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490075_in_200x200.jpg"}, {"sku": "EN-272479-5595511-NM-HOLO", "set": "SWSH10: Astral Radiance Trainer Gallery", "name": "Kleavor", "num": "TG08/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.41, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272479_in_200x200.jpg"}, {"sku": "EN-246713-5150118-NM-HOLO", "set": "SWSH07: Evolving Skies", "name": "Lycanroc VMAX", "num": "092/203", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.68, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/246713_in_200x200.jpg"}, {"sku": "EN-490076-7041546-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Mabosstiff - 218/198", "num": "218/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 8.95, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490076_in_200x200.jpg"}, {"sku": "EN-272274-5594177-NM-HOLO", "set": "SWSH10: Astral Radiance", "name": "Machamp VMAX", "num": "073/189", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.82, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272274_in_200x200.jpg"}, {"sku": "EN-478023-6926385-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Manaphy", "num": "GG06/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 8.07, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478023_in_200x200.jpg"}, {"sku": "EN-478063-6926636-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Mareep", "num": "GG34/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 11.96, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478063_in_200x200.jpg"}, {"sku": "EN-478043-6926495-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Miltank", "num": "GG24/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 15.17, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478043_in_200x200.jpg"}, {"sku": "EN-478021-6926375-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Oricorio", "num": "GG04/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 4.68, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478021_in_200x200.jpg"}, {"sku": "EN-509946-7337173-NM-HOLO", "set": "SV03: Obsidian Flames", "name": "Palafin - 200/197", "num": "200/197", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 7.04, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/509946_in_200x200.jpg"}, {"sku": "EN-534736-7697263-NM-HOLO", "set": "SV: Paldean Fates", "name": "Palafin - 225/091", "num": "225/091", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.52, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/534736_in_200x200.jpg"}, {"sku": "EN-478061-6926626-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Paras", "num": "GG32/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 11.36, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478061_in_200x200.jpg"}, {"sku": "EN-284253-5788489-NM-HOLO", "set": "SWSH11: Lost Origin Trainer Gallery", "name": "Parasect", "num": "TG01/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 4.99, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/284253_in_200x200.jpg"}, {"sku": "EN-534739-7697278-NM-HOLO", "set": "SV: Paldean Fates", "name": "Pawmi - 226/091", "num": "226/091", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.81, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/534739_in_200x200.jpg"}, {"sku": "EN-490069-7041511-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Pawmot - 209/198", "num": "209/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 11.83, "qty": 3, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490069_in_200x200.jpg"}, {"sku": "EN-133820-3399813-NM-HOLO", "set": "SM Promos", "name": "Primarina GX - SM39", "num": "SM39", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 18.21, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/133820_in_200x200.jpg"}, {"sku": "EN-197664-4169224-NM-HOLO", "set": "Hidden Fates", "name": "Raichu GX", "num": "20/68", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.43, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/197664_in_200x200.jpg"}, {"sku": "EN-197876-4170485-NM-HOLO", "set": "SM Promos", "name": "Raichu GX - SM213", "num": "SM213", "rarity": "Promo", "cond": "Near Mint", "print": "Holofoil", "price": 2.57, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/197876_in_200x200.jpg"}, {"sku": "EN-490062-7041481-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Scovillain - 202/198", "num": "202/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 7.29, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490062_in_200x200.jpg"}, {"sku": "EN-490080-7041566-NM-HOLO", "set": "SV01: Scarlet & Violet Base Set", "name": "Skwovet - 222/198", "num": "222/198", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 9.55, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/490080_in_200x200.jpg"}, {"sku": "EN-478046-6926510-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Swablu", "num": "GG27/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 8.22, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/478046_in_200x200.jpg"}, {"sku": "EN-623592-8608879-NM-HOLO", "set": "SV09: Journey Together", "name": "Swinub - 165/159", "num": "165/159", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.95, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/623592_in_200x200.jpg"}, {"sku": "EN-138520-3442989-NM-HOLO", "set": "SM - Burning Shadows", "name": "Tapu Fini GX (Full Art)", "num": "133/147", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.51, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/138520_in_200x200.jpg"}, {"sku": "EN-477056-6922021-NM-HOLO", "set": "SWSH: Crown Zenith: Galarian Gallery", "name": "Thievul", "num": "GG17/GG70", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.66, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/477056_in_200x200.jpg"}, {"sku": "EN-523866-7497043-NM-HOLO", "set": "SV04: Paradox Rift", "name": "Toedscruel - 185/182", "num": "185/182", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 8.34, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/523866_in_200x200.jpg"}, {"sku": "EN-509954-7337223-NM-HOLO", "set": "SV03: Obsidian Flames", "name": "Varoom - 206/197", "num": "206/197", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.5, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/509954_in_200x200.jpg"}, {"sku": "EN-550222-7911596-NM-HOLO", "set": "SV06: Twilight Masquerade", "name": "Wattrel - 178/167", "num": "178/167", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 6.19, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/550222_in_200x200.jpg"}, {"sku": "EN-534731-7697193-NM-HOLO", "set": "SV: Paldean Fates", "name": "Wugtrio - 224/091", "num": "224/091", "rarity": "Illustration Rare", "cond": "Near Mint", "print": "Holofoil", "price": 3.1, "qty": 1, "img": "https://tcgplayer-cdn.tcgplayer.com/product/534731_in_200x200.jpg"}, {"sku": "EN-272477-5595501-NM-HOLO", "set": "SWSH10: Astral Radiance Trainer Gallery", "name": "Wyrdeer", "num": "TG06/TG30", "rarity": "Ultra Rare", "cond": "Near Mint", "print": "Holofoil", "price": 2.84, "qty": 2, "img": "https://tcgplayer-cdn.tcgplayer.com/product/272477_in_200x200.jpg"}];
+</script>
+<script>
+const CONFIG = {
+  SHOP_NAME: "PokeBreakBros",
+  FLAT_SHIPPING: 6.00,
+  PAYPAL_CLIENT_ID: "BAA3Hz17m2TLwVq6nHkLkAgialzOER1d8FdnX-XvNqP77nsKkvVGfEaRT5l9q5wvMbLwOZSiQKTnnFpzsE",
+  NEXUS_STATES: [], // no sales tax collected until Certificate of Authority is sorted
+  TWITCH_CHANNEL: "https://www.twitch.tv/pokebreakbroslive"
+};
+
+const SUPABASE_URL = "https://vikxmnrhxcinobrdjrao.supabase.co";
+const SUPABASE_KEY = "sb_publishable_EWIctun4oG6vEPRt8T-EEw_yq8B_LFG";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const STATE_TAX_RATES = {
+  AL:0.040, AK:0.000, AZ:0.056, AR:0.065, CA:0.0725, CO:0.029, CT:0.0635,
+  DE:0.000, FL:0.060, GA:0.040, HI:0.040, ID:0.060, IL:0.0625, IN:0.070,
+  IA:0.060, KS:0.065, KY:0.060, LA:0.0445, ME:0.055, MD:0.060, MA:0.0625,
+  MI:0.060, MN:0.06875, MS:0.070, MO:0.04225, MT:0.000, NE:0.055, NV:0.0685,
+  NH:0.000, NJ:0.06625, NM:0.050, NY:0.040, NC:0.0475, ND:0.050, OH:0.0575,
+  OK:0.045, OR:0.000, PA:0.060, RI:0.070, SC:0.060, SD:0.042, TN:0.070,
+  TX:0.0625, UT:0.0610, VT:0.060, VA:0.0530, WA:0.065, WV:0.060, WI:0.050,
+  WY:0.040, DC:0.060
+};
+
+document.getElementById('shopName').textContent = CONFIG.SHOP_NAME;
+
+let cart = [];
+let stockOverrides = {};
+let photoOverrides = {};
+let PACKS = [];
+let STREAMS = [];
+let currentCategory = 'singles';
+
+function money(n){ return '$' + (Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function rarityClass(r){
+  if(!r) return 'common';
+  const s = r.toLowerCase();
+  if(s.includes('rare') && !s.includes('uncommon')) return 'rare';
+  if(s.includes('uncommon')) return 'uncommon';
+  return 'common';
+}
+
+function categoryOf(item){
+  const cond = (item.cond||'').toLowerCase();
+  const name = (item.name||'').toLowerCase();
+  if(/psa|bgs|cgc|sgc|ace grading|graded/.test(cond) || /psa|bgs|cgc|sgc/.test(name)) return 'slabs';
+  if(cond.includes('unopened') || cond.includes('sealed') || name.includes('box') || name.includes('booster pack') || name.includes('bundle')) return 'packs';
+  return 'singles';
+}
+
+function setCategory(cat){
+  currentCategory = cat;
+  document.querySelectorAll('.cat-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.cat === cat);
+  });
+  renderGrid();
+}
+
+function showSection(name){
+  document.querySelectorAll('.page-section').forEach(sec=>{ sec.style.display = 'none'; });
+  document.getElementById('sec-'+name).style.display = 'block';
+  document.querySelectorAll('.navlink').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.sec === name);
+  });
+  window.scrollTo({top:0, behavior:'instant'});
+  if(name==='inventory') renderGrid();
+  if(name==='schedule') renderLiveBreaks();
+}
+
+let homeBgTimer = null;
+function initHomeBackground(){
+  const layer = document.getElementById('homeBgLayer');
+  const withImages = ITEMS.filter(i=>getImage(i));
+  if(withImages.length===0) return;
+
+  const pool = [];
+  const used = new Set();
+  while(pool.length < Math.min(60, withImages.length)){
+    const pick = withImages[Math.floor(Math.random()*withImages.length)];
+    if(!used.has(pick.sku)){ used.add(pick.sku); pool.push(getImage(pick)); }
+  }
+
+  const tileCols = Math.max(6, Math.ceil(window.innerWidth / 100));
+  const tileRows = Math.max(4, Math.ceil(window.innerHeight / 100));
+  const tileCount = tileCols * tileRows;
+
+  layer.innerHTML = '';
+  const tiles = [];
+  for(let t=0; t<tileCount; t++){
+    const div = document.createElement('div');
+    div.className = 'bg-tile';
+    const img = document.createElement('img');
+    img.src = pool[Math.floor(Math.random()*pool.length)];
+    img.loading = 'lazy';
+    div.appendChild(img);
+    layer.appendChild(div);
+    tiles.push(img);
+  }
+
+  function flipRandomTile(){
+    const img = tiles[Math.floor(Math.random()*tiles.length)];
+    img.style.opacity = '0';
+    setTimeout(()=>{
+      img.src = pool[Math.floor(Math.random()*pool.length)];
+      img.style.opacity = '1';
+    }, 250);
+  }
+  homeBgTimer = setInterval(flipRandomTile, 220);
+}
+
+function getQty(item){
+  const ov = stockOverrides[item.sku];
+  return ov === undefined ? item.qty : ov;
+}
+
+async function loadStock(){
+  try{
+    const { data, error } = await sb.from('stock').select('sku, qty');
+    if(error) throw error;
+    (data||[]).forEach(row => { stockOverrides[row.sku] = row.qty; });
+  }catch(e){ console.warn('stock load skipped', e); }
+}
+
+async function loadPhotos(){
+  try{
+    const { data, error } = await sb.from('photos').select('sku, data_url');
+    if(error) throw error;
+    (data||[]).forEach(row => { photoOverrides[row.sku] = row.data_url; });
+  }catch(e){ console.warn('photo load skipped', e); }
+}
+
+function getImage(item){
+  return photoOverrides[item.sku] || item.img || '';
+}
+
+function allProducts(){
+  return ITEMS.concat(PACKS);
+}
+function findProduct(sku){
+  return allProducts().find(i=>i.sku===sku);
+}
+
+async function loadStreams(){
+  try{
+    const { data, error } = await sb.from('streams').select('id, data');
+    if(error) throw error;
+    STREAMS = (data||[]).map(row => row.data);
+    STREAMS.sort((a,b)=> new Date(a.scheduledAt) - new Date(b.scheduledAt));
+  }catch(e){ console.warn('streams load skipped', e); }
+}
+
+async function loadPacks(){
+  try{
+    const { data, error } = await sb.from('packs').select('sku, data');
+    if(error) throw error;
+    PACKS = (data||[]).map(row => row.data);
+  }catch(e){ console.warn('packs load skipped', e); }
+}
+
+function populateFilters(){
+  const sets = [...new Set(ITEMS.map(i=>i.set))].sort();
+  const rarities = [...new Set(ITEMS.map(i=>i.rarity))].sort();
+  const setSel = document.getElementById('setFilter');
+  const raritySel = document.getElementById('rarityFilter');
+  sets.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; setSel.appendChild(o); });
+  rarities.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; raritySel.appendChild(o); });
+}
+
+function currentFilters(){
+  return {
+    q: document.getElementById('searchInput').value.trim().toLowerCase(),
+    set: document.getElementById('setFilter').value,
+    rarity: document.getElementById('rarityFilter').value,
+    sort: document.getElementById('sortSelect').value
+  };
+}
+
+function renderGrid(){
+  const f = currentFilters();
+  const catLabel = {singles:'singles', slabs:'graded slabs', packs:'packs & sealed product'}[currentCategory];
+  let items = ITEMS.filter(i=>{
+    if(categoryOf(i) !== currentCategory) return false;
+    if(f.set && i.set !== f.set) return false;
+    if(f.rarity && i.rarity !== f.rarity) return false;
+    if(f.q){
+      const hay = (i.name+' '+i.set+' '+i.num).toLowerCase();
+      if(!hay.includes(f.q)) return false;
+    }
+    return true;
+  });
+  if(f.sort === 'price-desc') items.sort((a,b)=>b.price-a.price);
+  else if(f.sort === 'price-asc') items.sort((a,b)=>a.price-b.price);
+  else items.sort((a,b)=>a.name.localeCompare(b.name));
+
+  const totalInCategory = ITEMS.filter(i=>categoryOf(i)===currentCategory).length;
+  document.getElementById('resultCount').textContent = items.length + ' of ' + totalInCategory + ' ' + catLabel;
+  document.getElementById('itemCountHeader').textContent = totalInCategory + ' ' + catLabel + ' in stock';
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('emptyMsg');
+  grid.innerHTML = '';
+  empty.style.display = items.length ? 'none' : 'block';
+
+  items.forEach(item=>{
+    const qty = getQty(item);
+    const inCart = cart.find(c=>c.sku===item.sku);
+    const cartQty = inCart ? inCart.qty : 0;
+    const disabled = qty <= cartQty;
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <span class="badge ${rarityClass(item.rarity)}">${escapeHtml(item.rarity||'')}</span>
+      <div class="imgwrap"><img loading="lazy" src="${getImage(item)}" alt="${escapeHtml(item.name)}" onerror="this.style.opacity=0"></div>
+      <div class="set">${escapeHtml(item.set)} · #${escapeHtml(item.num||'')}</div>
+      <h3>${escapeHtml(item.name)}</h3>
+      <div class="meta"><span>${escapeHtml(item.cond)}</span><span>${escapeHtml(item.print||'')}</span></div>
+      <div class="pricerow">
+        <span class="price">${money(item.price)}</span>
+        <span class="stock ${qty<=0?'out':''}">${qty<=0?'Sold out':(qty - cartQty)+' left'}</span>
+      </div>
+      <button class="add" ${disabled?'disabled':''} onclick="addToCart('${item.sku}')">${disabled?'Sold out':'Add to cart'}</button>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function formatStreamTime(iso){
+  try{
+    return new Date(iso).toLocaleString('en-US',{weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+  }catch(e){ return iso; }
+}
+
+function renderLiveBreaks(){
+  const list = document.getElementById('liveBreaksList');
+  const visibleStreams = STREAMS.filter(s=>s.status !== 'completed');
+  if(visibleStreams.length===0){
+    list.innerHTML = '<p style="color:var(--ink-soft);font-size:13.5px;">No live streams scheduled right now — check back soon!</p>';
+    return;
+  }
+  const blocks = visibleStreams.map(stream=>{
+    const packs = PACKS.filter(p=>p.streamId===stream.id);
+    const cards = packs.length ? packs.map(p=>{
+      const qty = getQty(p);
+      const inCart = cart.find(c=>c.sku===p.sku);
+      const cartQty = inCart ? inCart.qty : 0;
+      const disabled = qty <= cartQty;
+      return `
+        <div class="card pack-card">
+          <span class="badge pack">PACK</span>
+          <div class="imgwrap"><img loading="lazy" src="${getImage(p)}" alt="${escapeHtml(p.name)}" onerror="this.style.opacity=0"></div>
+          <div class="set">${escapeHtml(p.set||'')}</div>
+          <h3>${escapeHtml(p.name)}</h3>
+          <div class="pricerow">
+            <span class="price">${money(p.price)}</span>
+            <span class="stock ${qty<=0?'out':''}">${qty<=0?'Sold out':(qty - cartQty)+' slots left'}</span>
+          </div>
+          <button class="add" ${disabled?'disabled':''} onclick="addToCart('${p.sku}')">${disabled?'Sold out':'Buy a slot'}</button>
+        </div>`;
+    }).join('') : '<div style="padding:16px 0;"><p style="color:var(--ink-soft);font-size:12.5px;margin:0 0 10px;">Tune in and shop singles from the full inventory during the stream.</p><button class="ghost" style="width:auto;padding:8px 16px;margin:0;" onclick="showSection(\'inventory\')">Shop the inventory</button></div>';
+    return `
+      <div class="stream-block">
+        <div class="stream-banner">
+          <div>
+            <div class="st-title">${escapeHtml(stream.title)}</div>
+            <div class="st-when">${formatStreamTime(stream.scheduledAt)}${stream.status==='live' ? ' · LIVE NOW' : ''}</div>
+          </div>
+          ${stream.twitchChannel ? `<a class="twitch-link" href="${escapeHtml(stream.twitchChannel)}" target="_blank" rel="noopener">Watch on Twitch</a>` : ''}
+        </div>
+        ${packs.length ? `<div class="grid">${cards}</div>` : `<div style="border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;padding:4px 16px;">${cards}</div>`}
+      </div>`;
+  }).join('');
+  list.innerHTML = blocks;
+}
+
+function addToCart(sku){
+  const item = findProduct(sku);
+  if(!item) return;
+  const qty = getQty(item);
+  const existing = cart.find(c=>c.sku===sku);
+  if(existing){
+    if(existing.qty < qty) existing.qty += 1;
+  } else {
+    cart.push({sku, qty:1});
+  }
+  updateCartCount();
+  renderGrid();
+  renderLiveBreaks();
+  renderCartPanel();
+}
+
+function updateCartCount(){
+  const count = cart.reduce((a,c)=>a+c.qty,0);
+  document.getElementById('cartCount').textContent = count;
+}
+
+function cartDetails(){
+  return cart.map(c=>{
+    const item = findProduct(c.sku);
+    return {...c, item};
+  }).filter(c=>c.item);
+}
+
+function cartSubtotal(){
+  return cartDetails().reduce((sum,c)=>sum + c.item.price * c.qty, 0);
+}
+
+function openCart(){
+  renderCartPanel();
+  document.getElementById('cartOverlay').style.display='flex';
+}
+function closeCart(){ document.getElementById('cartOverlay').style.display='none'; }
+
+function renderCartPanel(){
+  const body = document.getElementById('cartBody');
+  const details = cartDetails();
+  if(details.length===0){
+    body.innerHTML = '<p style="color:var(--ink-soft);font-size:13px;">Your cart is empty.</p>';
+    document.getElementById('cartCheckoutBtn').style.display = 'none';
+    return;
+  }
+  document.getElementById('cartCheckoutBtn').style.display='block';
+  let html = '';
+  details.forEach(c=>{
+    html += `
+      <div class="cart-line">
+        <img src="${getImage(c.item)}" alt="">
+        <div class="info">
+          <h4>${escapeHtml(c.item.name)}</h4>
+          <div class="sub">${escapeHtml(c.item.set)} · ${escapeHtml(c.item.cond)}</div>
+        </div>
+        <div class="qtyctrl">
+          <button onclick="changeQty('${c.sku}',-1)">−</button>
+          <span>${c.qty}</span>
+          <button onclick="changeQty('${c.sku}',1)">+</button>
+        </div>
+        <div class="linetotal">${money(c.item.price*c.qty)}</div>
+      </div>`;
+  });
+  const subtotal = cartSubtotal();
+  html += `
+    <div class="sumrow"><span>Subtotal</span><span>${money(subtotal)}</span></div>
+    <div class="sumrow"><span>Shipping</span><span>${money(CONFIG.FLAT_SHIPPING)}</span></div>
+    <div class="sumrow"><span>Tax</span><span>calculated at checkout</span></div>
+  `;
+  body.innerHTML = html;
+}
+
+function changeQty(sku, delta){
+  const line = cart.find(c=>c.sku===sku);
+  if(!line) return;
+  const item = findProduct(sku);
+  const maxQty = getQty(item);
+  line.qty += delta;
+  if(line.qty > maxQty) line.qty = maxQty;
+  if(line.qty <= 0) cart = cart.filter(c=>c.sku!==sku);
+  updateCartCount();
+  renderGrid();
+  renderLiveBreaks();
+  renderCartPanel();
+}
+
+let currentTax = 0;
+let currentTotal = 0;
+
+function openCheckout(){
+  closeCart();
+  document.getElementById('checkoutOverlay').style.display='flex';
+  document.getElementById('paypal-btn-container').innerHTML='';
+  document.getElementById('checkoutStatus').textContent='';
+  recalcCheckout();
+}
+function closeCheckout(){ document.getElementById('checkoutOverlay').style.display='none'; }
+
+function recalcCheckout(){
+  const state = document.getElementById('shipState').value;
+  const subtotal = cartSubtotal();
+  const rate = CONFIG.NEXUS_STATES.includes(state) ? (STATE_TAX_RATES[state]||0) : 0;
+  const tax = subtotal * rate;
+  const total = subtotal + tax + CONFIG.FLAT_SHIPPING;
+  currentTax = tax;
+  currentTotal = total;
+  document.getElementById('sumSubtotal').textContent = money(subtotal);
+  document.getElementById('sumShipping').textContent = money(CONFIG.FLAT_SHIPPING);
+  document.getElementById('sumTax').textContent = money(tax) + (rate?(' ('+(rate*100).toFixed(2)+'% '+state+')'):' (no nexus)');
+  document.getElementById('sumTotal').textContent = money(total);
+  renderPaypalButton();
+}
+
+function formValid(){
+  const required = ['buyerName','buyerEmail','shipAddr1','shipCity','shipState','shipZip'];
+  return required.every(id=>document.getElementById(id).value.trim().length>0) && cart.length>0;
+}
+
+function renderPaypalButton(){
+  const container = document.getElementById('paypal-btn-container');
+  container.innerHTML = '';
+  if(!formValid()){
+    container.innerHTML = '<div class="note">Fill in your shipping details above to reveal payment.</div>';
+    return;
+  }
+  if(window.paypal && window.paypal.Buttons){
+    window.paypal.Buttons({
+      style:{ layout:'vertical', color:'black', shape:'rect', label:'paypal' },
+      createOrder: function(data, actions){
+        return actions.order.create({
+          purchase_units: [{ amount: { value: currentTotal.toFixed(2) } }]
+        });
+      },
+      onApprove: function(data, actions){
+        return actions.order.capture().then(function(details){
+          finalizeOrder(details.id || data.orderID);
+        });
+      },
+      onError: function(err){
+        document.getElementById('checkoutStatus').textContent = 'PayPal error — please try again.';
+        console.error(err);
+      }
+    }).render('#paypal-btn-container');
+  } else {
+    container.innerHTML = `
+      <div class="note warn">PayPal SDK didn't load in this preview (sandboxed environments block outside scripts). Host this file on your own domain with your PayPal Client ID and the real buttons will render here.</div>
+      <button class="primary" onclick="finalizeOrder('TEST-'+Date.now())">Simulate PayPal payment (test mode)</button>
+    `;
+  }
+}
+
+async function finalizeOrder(paypalOrderId){
+  const details = cartDetails();
+  const orderId = 'ORD-' + Date.now().toString(36).toUpperCase();
+  const order = {
+    orderId,
+    paypalOrderId,
+    date: new Date().toISOString(),
+    buyerName: document.getElementById('buyerName').value.trim(),
+    buyerEmail: document.getElementById('buyerEmail').value.trim(),
+    shipAddr1: document.getElementById('shipAddr1').value.trim(),
+    shipAddr2: document.getElementById('shipAddr2').value.trim(),
+    shipCity: document.getElementById('shipCity').value.trim(),
+    shipState: document.getElementById('shipState').value,
+    shipZip: document.getElementById('shipZip').value.trim(),
+    items: details.map(c=>({sku:c.sku, name:c.item.name, qty:c.qty, price:c.item.price})),
+    subtotal: cartSubtotal(),
+    tax: currentTax,
+    shipping: CONFIG.FLAT_SHIPPING,
+    total: currentTotal
+  };
+
+  try{
+    const { error: orderError } = await sb.from('orders').insert({order_id: orderId, data: order});
+    if(orderError) throw orderError;
+    for(const c of details){
+      const newQty = Math.max(0, getQty(c.item) - c.qty);
+      stockOverrides[c.sku] = newQty;
+      const { error: stockError } = await sb.from('stock').upsert({sku: c.sku, qty: newQty});
+      if(stockError) throw stockError;
+    }
+  }catch(e){
+    console.error('order save failed', e);
+  }
+
+  cart = [];
+  updateCartCount();
+  renderGrid();
+  renderLiveBreaks();
+  document.getElementById('checkoutStatus').innerHTML = `<strong>Order ${orderId} placed.</strong> A confirmation and packing slip will be available in Shop admin.`;
+  document.getElementById('paypal-btn-container').innerHTML = '';
+  document.getElementById('checkoutFormFields').style.display = 'none';
+}
+
+async function openAdmin(){
+  document.getElementById('adminOverlay').style.display='flex';
+  switchAdminTab('orders');
+  await renderAdminOrders();
+}
+function closeAdmin(){ document.getElementById('adminOverlay').style.display='none'; }
+
+function switchAdminTab(tab){
+  document.getElementById('adminOrdersPane').style.display = tab==='orders' ? 'block':'none';
+  document.getElementById('adminInventoryPane').style.display = tab==='inventory' ? 'block':'none';
+  document.getElementById('adminPhotosPane').style.display = tab==='photos' ? 'block':'none';
+  document.getElementById('adminStreamsPane').style.display = tab==='streams' ? 'block':'none';
+  document.getElementById('tabOrdersBtn').classList.toggle('active', tab==='orders');
+  document.getElementById('tabInventoryBtn').classList.toggle('active', tab==='inventory');
+  document.getElementById('tabPhotosBtn').classList.toggle('active', tab==='photos');
+  document.getElementById('tabStreamsBtn').classList.toggle('active', tab==='streams');
+  if(tab==='photos') renderPhotoManager();
+  if(tab==='inventory') renderInventoryManager();
+  if(tab==='streams') renderStreamsAdmin();
+}
+
+function getPhotoSearchItems(){
+  const q = document.getElementById('photoSearch').value.trim().toLowerCase();
+  let items = ITEMS;
+  if(q){
+    items = items.filter(i => (i.name+' '+i.set+' '+i.sku).toLowerCase().includes(q));
+  }
+  return items;
+}
+
+function renderPhotoManager(){
+  const items = getPhotoSearchItems();
+  const grid = document.getElementById('photoManagerGrid');
+  const shown = items.slice(0, 60);
+  grid.innerHTML = shown.map(i => `
+    <div class="photo-card">
+      <img id="thumb-${cssSafe(i.sku)}" src="${getImage(i)}" alt="">
+      <div class="pname">${escapeHtml(i.name)}</div>
+      <div class="psku">${escapeHtml(i.sku)}</div>
+      <input type="file" accept="image/*" onchange="uploadPhoto('${i.sku}', this)">
+    </div>
+  `).join('');
+  if(shown.length===0){
+    grid.innerHTML = '<p style="color:var(--ink-soft);font-size:13px;">No matching cards.</p>';
+  }
+  renderBulkOrderList();
+}
+
+function renderBulkOrderList(){
+  const items = getPhotoSearchItems();
+  const list = document.getElementById('bulkOrderList');
+  if(!list) return;
+  if(items.length===0){
+    list.innerHTML = '<div class="bo-row" style="color:var(--ink-soft);">No cards match the search above.</div>';
+    return;
+  }
+  list.innerHTML = items.map((i,idx)=>`
+    <div class="bo-row"><span class="bo-num">${idx+1}.</span><span>${escapeHtml(i.name)} <span style="color:var(--ink-soft);">(${escapeHtml(i.sku)})</span></span></div>
+  `).join('');
+}
+
+function naturalSortFiles(files){
+  return Array.from(files).sort((a,b)=>{
+    return a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'});
+  });
+}
+
+let bulkPairs = [];
+
+function handleBulkPhotoSelect(input){
+  const files = naturalSortFiles(input.files);
+  const items = getPhotoSearchItems();
+  const count = Math.min(files.length, items.length);
+  bulkPairs = [];
+  for(let i=0; i<count; i++){
+    bulkPairs.push({file: files[i], item: items[i]});
+  }
+  const preview = document.getElementById('bulkPreview');
+  let warning = '';
+  if(files.length !== items.length){
+    warning = `<div class="note warn">You selected ${files.length} file(s) but the list above has ${items.length} card(s) — only the first ${count} pair${count===1?'':'s'} will be matched. Narrow your search above or adjust your file selection so the counts match.</div>`;
+  }
+  preview.innerHTML = warning + `
+    <div style="margin-top:10px;max-height:260px;overflow-y:auto;">
+      ${bulkPairs.map((p,idx)=>`
+        <div class="bulk-preview-row">
+          <span style="font-family:var(--mono);color:var(--ink-soft);">${idx+1}.</span>
+          <span class="bp-file">${escapeHtml(p.file.name)}</span>
+          <span>→</span>
+          <span>${escapeHtml(p.item.name)} <span style="color:var(--ink-soft);">(${escapeHtml(p.item.sku)})</span></span>
+        </div>
+      `).join('')}
+    </div>
+    <button class="primary" onclick="confirmBulkUpload()">Confirm &amp; save all ${count} photo${count===1?'':'s'}</button>
+  `;
+}
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function confirmBulkUpload(){
+  const preview = document.getElementById('bulkPreview');
+  let done = 0;
+  for(const pair of bulkPairs){
+    try{
+      const dataUrl = await readFileAsDataUrl(pair.file);
+      photoOverrides[pair.item.sku] = dataUrl;
+      const { error } = await sb.from('photos').upsert({sku: pair.item.sku, data_url: dataUrl});
+      if(error) throw error;
+      done++;
+      preview.querySelector('button').textContent = `Saving… ${done}/${bulkPairs.length}`;
+    }catch(e){
+      console.error('bulk photo save failed for', pair.item.sku, e);
+    }
+  }
+  preview.innerHTML = `<div class="note">Done — ${done} of ${bulkPairs.length} photos saved.</div>`;
+  bulkPairs = [];
+  document.getElementById('bulkPhotoFiles').value = '';
+  renderGrid();
+  renderLiveBreaks();
+  renderPhotoManager();
+}
+
+function cssSafe(s){ return s.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+function renderInventoryManager(){
+  const q = document.getElementById('invSearch').value.trim().toLowerCase();
+  const tbody = document.getElementById('invManagerBody');
+  let items = ITEMS;
+  if(q){
+    items = items.filter(i => (i.name+' '+i.set+' '+i.sku).toLowerCase().includes(q));
+  }
+  items = items.slice(0, 80);
+  tbody.innerHTML = items.map(i=>{
+    const onHand = getQty(i);
+    const sold = Math.max(0, i.qty - onHand);
+    return `
+      <tr>
+        <td>${escapeHtml(i.name)}<br><span style="color:var(--ink-soft);font-family:var(--mono);font-size:10.5px;">${escapeHtml(i.sku)}</span></td>
+        <td>${i.qty}</td>
+        <td>${sold}</td>
+        <td>${onHand}</td>
+        <td style="display:flex;gap:6px;">
+          <input type="number" min="0" id="qtyinput-${cssSafe(i.sku)}" value="${onHand}" style="width:60px;padding:5px;border-radius:6px;border:1.5px solid var(--line-strong);">
+          <button class="ghost" style="margin:0;padding:6px 10px;width:auto;" onclick="saveStockQty('${i.sku}')">Save</button>
+        </td>
+      </tr>`;
+  }).join('');
+  if(items.length===0){
+    tbody.innerHTML = '<tr><td colspan="5">No matching cards.</td></tr>';
+  }
+}
+
+async function saveStockQty(sku){
+  const input = document.getElementById('qtyinput-'+cssSafe(sku));
+  const newQty = Math.max(0, parseInt(input.value,10) || 0);
+  stockOverrides[sku] = newQty;
+  try{
+    const { error } = await sb.from('stock').upsert({sku, qty:newQty});
+    if(error) throw error;
+  }catch(e){
+    console.error('restock save failed', e);
+    alert('Could not save that quantity, try again.');
+    return;
+  }
+  renderGrid();
+  renderInventoryManager();
+}
+
+function exportInventoryCsv(){
+  const rows = [['SKU','Name','Set','Condition','Price','Starting Qty','Qty Sold','Qty On Hand','Needs Restock']];
+  ITEMS.forEach(i=>{
+    const onHand = getQty(i);
+    const sold = Math.max(0, i.qty - onHand);
+    rows.push([i.sku, i.name, i.set, i.cond, i.price.toFixed(2), i.qty, sold, onHand, onHand<=0 ? 'YES':'']);
+  });
+  const csv = rows.map(r=>r.map(v=>{
+    const s = String(v).replace(/"/g,'""');
+    return /[",\n]/.test(s) ? `"${s}"` : s;
+  }).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'inventory_restock_report_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function uploadPhoto(sku, input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    const dataUrl = e.target.result;
+    photoOverrides[sku] = dataUrl;
+    const thumb = document.getElementById('thumb-'+cssSafe(sku));
+    if(thumb) thumb.src = dataUrl;
+    try{
+      const { error } = await sb.from('photos').upsert({sku, data_url: dataUrl});
+      if(error) throw error;
+    }catch(err){
+      console.error('photo save failed', err);
+      alert('Could not save that photo — it may be too large. Try resizing it smaller first.');
+    }
+    renderGrid();
+    renderLiveBreaks();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function createStream(){
+  const title = document.getElementById('newStreamTitle').value.trim();
+  const twitchChannel = document.getElementById('newStreamTwitch').value.trim();
+  const timeVal = document.getElementById('newStreamTime').value;
+  if(!title || !timeVal){
+    alert('Give the stream a title and a date/time first.');
+    return;
+  }
+  const id = 'STR-' + Date.now().toString(36).toUpperCase();
+  const stream = {
+    id, title, twitchChannel,
+    scheduledAt: new Date(timeVal).toISOString(),
+    status: 'upcoming',
+    createdAt: new Date().toISOString()
+  };
+  try{
+    const { error } = await sb.from('streams').insert({id, data: stream});
+    if(error) throw error;
+  }catch(e){
+    console.error('stream save failed', e);
+    alert('Could not save that stream, try again.');
+    return;
+  }
+  STREAMS.push(stream);
+  document.getElementById('newStreamTitle').value = '';
+  document.getElementById('newStreamTwitch').value = CONFIG.TWITCH_CHANNEL;
+  document.getElementById('newStreamTime').value = '';
+  renderStreamsAdmin();
+  renderLiveBreaks();
+}
+
+async function updateStreamStatus(streamId, status){
+  const stream = STREAMS.find(s=>s.id===streamId);
+  if(!stream) return;
+  stream.status = status;
+  try{
+    const { error } = await sb.from('streams').update({data: stream}).eq('id', streamId);
+    if(error) throw error;
+  }catch(e){ console.error(e); }
+  renderStreamsAdmin();
+  renderLiveBreaks();
+}
+
+async function addPack(streamId){
+  const name = document.getElementById('packName-'+streamId).value.trim();
+  const setLabel = document.getElementById('packSet-'+streamId).value.trim();
+  const price = parseFloat(document.getElementById('packPrice-'+streamId).value);
+  const slots = parseInt(document.getElementById('packSlots-'+streamId).value, 10);
+  if(!name || isNaN(price) || price<=0 || isNaN(slots) || slots<=0){
+    alert('Fill in a name, price, and slot count first.');
+    return;
+  }
+  const id = 'PACK-' + Date.now().toString(36).toUpperCase();
+  const pack = {
+    sku: id, streamId, name, set: setLabel || 'Live Break',
+    cond:'', print:'', rarity:'Pack', price: Math.round(price*100)/100,
+    qty: slots, img:''
+  };
+  try{
+    const { error } = await sb.from('packs').insert({sku: id, data: pack});
+    if(error) throw error;
+  }catch(e){
+    console.error('pack save failed', e);
+    alert('Could not save that pack, try again.');
+    return;
+  }
+  PACKS.push(pack);
+  renderStreamsAdmin();
+  renderLiveBreaks();
+}
+
+async function savePulls(orderId, sku){
+  const text = document.getElementById('pulls-'+cssSafe(orderId)+'-'+cssSafe(sku)).value;
+  const order = (window.__allOrders||[]).find(o=>o.orderId===orderId);
+  if(!order) return;
+  order.pulls = order.pulls || {};
+  order.pulls[sku] = text;
+  try{
+    const { error } = await sb.from('orders').update({data: order}).eq('order_id', orderId);
+    if(error) throw error;
+  }catch(e){
+    console.error('pulls save failed', e);
+    alert('Could not save, try again.');
+    return;
+  }
+  const btn = document.getElementById('pullsbtn-'+cssSafe(orderId)+'-'+cssSafe(sku));
+  if(btn){ btn.textContent = 'Saved ✓'; setTimeout(()=>{ btn.textContent='Save'; }, 1500); }
+}
+
+async function renderStreamsAdmin(){
+  const container = document.getElementById('streamsListContainer');
+  if(STREAMS.length===0){
+    container.innerHTML = '<p style="color:var(--ink-soft);font-size:13px;">No streams yet — create one above.</p>';
+    return;
+  }
+  container.innerHTML = '<p style="color:var(--ink-soft);font-size:13px;">Loading…</p>';
+  const orders = await fetchAllOrders();
+
+  const cardsHtml = STREAMS.map(stream=>{
+    const packs = PACKS.filter(p=>p.streamId===stream.id);
+    const packRows = packs.map(p=>{
+      const onHand = getQty(p);
+      return `
+        <div class="pack-row">
+          <span class="prname">${escapeHtml(p.name)} <span style="color:var(--ink-soft);">(${escapeHtml(p.set)})</span></span>
+          <span>${money(p.price)}</span>
+          <span>${onHand} slots left</span>
+        </div>`;
+    }).join('') || '<div class="pack-row" style="color:var(--ink-soft);">No packs added to this stream yet.</div>';
+
+    let pullsHtml = '';
+    if(stream.status === 'completed'){
+      const packSkus = new Set(packs.map(p=>p.sku));
+      const relevantRows = [];
+      orders.forEach(o=>{
+        o.items.forEach(item=>{
+          if(packSkus.has(item.sku)){
+            const saved = (o.pulls && o.pulls[item.sku]) || '';
+            relevantRows.push(`
+              <div class="pull-row">
+                <strong>${escapeHtml(o.buyerName)}</strong> — ${escapeHtml(item.name)} (x${item.qty}) · Order ${escapeHtml(o.orderId)}
+                <textarea id="pulls-${cssSafe(o.orderId)}-${cssSafe(item.sku)}" placeholder="What was pulled for this slot…">${escapeHtml(saved)}</textarea>
+                <button class="ghost" id="pullsbtn-${cssSafe(o.orderId)}-${cssSafe(item.sku)}" style="margin-top:6px;width:auto;padding:6px 12px;" onclick="savePulls('${o.orderId}','${item.sku}')">Save</button>
+              </div>`);
+          }
+        });
+      });
+      pullsHtml = `
+        <div style="margin-top:12px;">
+          <div style="font-weight:bold;font-size:12.5px;margin-bottom:4px;">Record pulls</div>
+          ${relevantRows.length ? relevantRows.join('') : '<div style="color:var(--ink-soft);font-size:12px;">No orders for this stream yet.</div>'}
+        </div>`;
+    }
+
+    return `
+      <div class="stream-admin-card">
+        <div class="sac-head">
+          <div>
+            <h4>${escapeHtml(stream.title)}</h4>
+            <div class="sac-sub">${formatStreamTime(stream.scheduledAt)}${stream.twitchChannel ? ' · '+escapeHtml(stream.twitchChannel) : ''}</div>
+          </div>
+          <select class="status-select" onchange="updateStreamStatus('${stream.id}', this.value)">
+            <option value="upcoming" ${stream.status==='upcoming'?'selected':''}>Upcoming</option>
+            <option value="live" ${stream.status==='live'?'selected':''}>Live now</option>
+            <option value="completed" ${stream.status==='completed'?'selected':''}>Completed</option>
+          </select>
+        </div>
+        ${packRows}
+        <div class="pack-add-form">
+          <input type="text" id="packName-${stream.id}" placeholder="Pack name, e.g. Prismatic Evolutions Booster">
+          <input type="text" id="packSet-${stream.id}" placeholder="Set (optional)">
+          <input type="number" id="packPrice-${stream.id}" placeholder="Price" step="0.01">
+          <input type="number" id="packSlots-${stream.id}" placeholder="Slots">
+        </div>
+        <button class="ghost" onclick="addPack('${stream.id}')">Add pack</button>
+        ${pullsHtml}
+      </div>`;
+  }).join('');
+  container.innerHTML = cardsHtml;
+}
+
+async function fetchAllOrders(){
+  let orders = [];
+  try{
+    const { data, error } = await sb.from('orders').select('order_id, data').order('created_at', {ascending:false});
+    if(error) throw error;
+    orders = (data||[]).map(row => row.data);
+  }catch(e){ console.warn(e); }
+  orders.sort((a,b)=> new Date(b.date) - new Date(a.date));
+  window.__allOrders = orders;
+  return orders;
+}
+
+async function renderAdminOrders(){
+  const tbody = document.getElementById('adminOrdersBody');
+  tbody.innerHTML = '<tr><td colspan="5">Loading orders…</td></tr>';
+  const orders = await fetchAllOrders();
+  if(orders.length===0){
+    tbody.innerHTML = '<tr><td colspan="5">No orders yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = orders.map(o=>`
+    <tr>
+      <td>${escapeHtml(o.orderId)}</td>
+      <td>${new Date(o.date).toLocaleDateString()}</td>
+      <td>${escapeHtml(o.buyerName)}<br><span style="color:var(--ink-soft)">${escapeHtml(o.shipCity)}, ${escapeHtml(o.shipState)} ${escapeHtml(o.shipZip)}</span></td>
+      <td>${o.items.reduce((a,i)=>a+i.qty,0)} items</td>
+      <td>${money(o.total)}</td>
+    </tr>
+  `).join('');
+}
+
+function exportOrdersCsv(){
+  const orders = window.__allOrders || [];
+  if(orders.length===0){ alert('No orders to export yet.'); return; }
+  const rows = [[
+    'Order ID','Date','Buyer Name','Email','Address 1','Address 2','City','State','Zip',
+    'Items','Pack Pulls','Subtotal','Tax','Shipping','Total'
+  ]];
+  orders.forEach(o=>{
+    const pullsText = o.items
+      .filter(i=>o.pulls && o.pulls[i.sku])
+      .map(i=>`${i.name}: ${o.pulls[i.sku]}`)
+      .join(' | ');
+    rows.push([
+      o.orderId, o.date, o.buyerName, o.buyerEmail, o.shipAddr1, o.shipAddr2||'',
+      o.shipCity, o.shipState, o.shipZip,
+      o.items.map(i=>`${i.qty}x ${i.name} (${i.sku})`).join(' | '),
+      pullsText,
+      o.subtotal.toFixed(2), o.tax.toFixed(2), o.shipping.toFixed(2), o.total.toFixed(2)
+    ]);
+  });
+  const csv = rows.map(r=>r.map(v=>{
+    const s = String(v).replace(/"/g,'""');
+    return /[",\n]/.test(s) ? `"${s}"` : s;
+  }).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'shipping_export_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('searchInput').addEventListener('input', renderGrid);
+document.getElementById('setFilter').addEventListener('change', renderGrid);
+document.getElementById('rarityFilter').addEventListener('change', renderGrid);
+document.getElementById('sortSelect').addEventListener('change', renderGrid);
+
+(async function init(){
+  await loadStock();
+  await loadPhotos();
+  await loadStreams();
+  await loadPacks();
+  populateFilters();
+  renderGrid();
+  renderLiveBreaks();
+  initHomeBackground();
+})();
+
+(function loadPaypalSdk(){
+  const s = document.createElement('script');
+  s.src = 'https://www.paypal.com/sdk/js?client-id=' + CONFIG.PAYPAL_CLIENT_ID + '&currency=USD';
+  s.onload = function(){ if(document.getElementById('checkoutOverlay').style.display==='flex') recalcCheckout(); };
+  s.onerror = function(){ console.warn('PayPal SDK failed to load'); };
+  document.head.appendChild(s);
+})();
+</script>
+
+<div class="overlay" id="cartOverlay" style="display:none;" onclick="if(event.target===this) closeCart()">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Your cart</h2>
+      <button class="icon" onclick="closeCart()">×</button>
+    </div>
+    <div id="cartBody"></div>
+    <button class="primary" id="cartCheckoutBtn" style="display:none;" onclick="openCheckout()">Checkout</button>
+  </div>
+</div>
+
+<div class="overlay center" id="checkoutOverlay" style="display:none;" onclick="if(event.target===this) closeCheckout()">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Checkout</h2>
+      <button class="icon" onclick="closeCheckout()">×</button>
+    </div>
+    <div id="checkoutFormFields">
+      <label class="field">Full name<input id="buyerName" oninput="recalcCheckout()" placeholder="Jane Miller"></label>
+      <label class="field">Email<input id="buyerEmail" oninput="recalcCheckout()" placeholder="jane@email.com" type="email"></label>
+      <label class="field">Address line 1<input id="shipAddr1" oninput="recalcCheckout()" placeholder="123 Main St"></label>
+      <label class="field">Address line 2 (optional)<input id="shipAddr2" oninput="recalcCheckout()" placeholder="Apt, suite, etc."></label>
+      <div class="row3">
+        <label class="field">City<input id="shipCity" oninput="recalcCheckout()"></label>
+        <label class="field">State
+          <select id="shipState" onchange="recalcCheckout()">
+            <option value="">--</option>
+          </select>
+        </label>
+        <label class="field">ZIP<input id="shipZip" oninput="recalcCheckout()"></label>
+      </div>
+    </div>
+
+    <div class="sumrow"><span>Subtotal</span><span id="sumSubtotal">$0.00</span></div>
+    <div class="sumrow"><span>Shipping</span><span id="sumShipping">$0.00</span></div>
+    <div class="sumrow"><span>Sales tax</span><span id="sumTax">$0.00</span></div>
+    <div class="sumrow total"><span>Total</span><span id="sumTotal">$0.00</span></div>
+
+    <div id="paypal-btn-container"></div>
+    <div id="checkoutStatus" style="margin-top:10px;font-size:13px;"></div>
+
+    <div class="note">Tax is only charged in states listed in <code>CONFIG.NEXUS_STATES</code> — update that list to match where you're registered to collect sales tax.</div>
+  </div>
+</div>
+
+<div class="overlay center" id="adminOverlay" style="display:none;" onclick="if(event.target===this) closeAdmin()">
+  <div class="modal" style="width:720px;">
+    <div class="modal-head">
+      <h2>Shop admin</h2>
+      <button class="icon" onclick="closeAdmin()">×</button>
+    </div>
+    <div class="note warn">This panel has no password — anyone with this page can open it. Treat it as a convenience view, not a secure back office.</div>
+
+    <div class="admin-tabs">
+      <button class="pill dark active" id="tabOrdersBtn" onclick="switchAdminTab('orders')">Orders</button>
+      <button class="pill dark" id="tabInventoryBtn" onclick="switchAdminTab('inventory')">Inventory</button>
+      <button class="pill dark" id="tabPhotosBtn" onclick="switchAdminTab('photos')">Manage photos</button>
+      <button class="pill dark" id="tabStreamsBtn" onclick="switchAdminTab('streams')">Live streams</button>
+    </div>
+
+    <div id="adminOrdersPane">
+      <button class="ghost" onclick="exportOrdersCsv()">Export shipping details (CSV)</button>
+      <div style="overflow-x:auto;margin-top:14px;">
+        <table class="orders">
+          <thead><tr><th>Order</th><th>Date</th><th>Ship to</th><th>Items</th><th>Total</th></tr></thead>
+          <tbody id="adminOrdersBody"><tr><td colspan="5">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="adminInventoryPane" style="display:none;">
+      <div class="note">"Sold" is how many units have shipped out through the site since you last restocked. "On hand" is what the site currently thinks you have. When new stock comes in, update the number below and save — that's the only way to add stock back in once it hits 0.</div>
+      <button class="ghost" onclick="exportInventoryCsv()">Export inventory &amp; restock report (CSV)</button>
+      <input type="text" id="invSearch" placeholder="Search by name, set, or SKU…" oninput="renderInventoryManager()" style="margin-top:10px;">
+      <div style="overflow-x:auto;margin-top:14px;">
+        <table class="orders">
+          <thead><tr><th>Card</th><th>Starting</th><th>Sold</th><th>On hand</th><th>Set new qty</th></tr></thead>
+          <tbody id="invManagerBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="adminPhotosPane" style="display:none;">
+      <div class="note">Scan or photograph a card, then upload it here — it's matched to the listing by SKU and replaces the stock photo everywhere on the site. For best load speed, keep each image under ~500KB (resize to around 800px on the long side before uploading).</div>
+      <input type="text" id="photoSearch" placeholder="Search by name, set, or SKU…" oninput="renderPhotoManager()" style="margin-top:10px;">
+      <div id="photoManagerGrid" class="photo-grid"></div>
+
+      <div style="border-top:2px solid var(--line);margin-top:24px;padding-top:16px;">
+        <h4 style="margin:0 0 6px;font-size:14px;">Bulk upload by scan order</h4>
+        <div class="note">Scan your cards in a known order (whatever order this list below shows), then select every scan file at once here. Files are sorted by filename and matched 1-to-1 against the list — no need to name files after SKUs. Use the search box above to narrow this to just the cards you're about to scan (e.g. one set at a time) so the order is short and manageable.</div>
+        <div id="bulkOrderList" class="bulk-order-list"></div>
+        <input type="file" id="bulkPhotoFiles" accept="image/*" multiple style="margin-top:12px;" onchange="handleBulkPhotoSelect(this)">
+        <div id="bulkPreview"></div>
+      </div>
+    </div>
+
+    <div id="adminStreamsPane" style="display:none;">
+      <div class="note">Create a stream, add pack slots buyers can purchase, then mark it live and, once it's done, record what was pulled for each order so it's ready to ship.</div>
+
+      <label class="field">Stream title<input id="newStreamTitle" placeholder="Friday Night Break"></label>
+      <div class="row2">
+        <label class="field">Twitch channel URL<input id="newStreamTwitch" placeholder="https://twitch.tv/yourchannel" value="https://www.twitch.tv/pokebreakbroslive"></label>
+        <label class="field">Date &amp; time<input id="newStreamTime" type="datetime-local"></label>
+      </div>
+      <button class="ghost" onclick="createStream()">Create stream</button>
+
+      <div id="streamsListContainer" style="margin-top:20px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function populateStateDropdown(){
+  const sel = document.getElementById('shipState');
+  Object.keys(STATE_TAX_RATES).sort().forEach(code=>{
+    const o = document.createElement('option');
+    o.value = code; o.textContent = code;
+    sel.appendChild(o);
+  });
+})();
+</script>
+
+</body>
+</html>
