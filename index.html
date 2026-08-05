@@ -405,7 +405,9 @@ const CONFIG = {
   PAYPAL_CLIENT_ID: "BAA3Hz17m2TLwVq6nHkLkAgialzOER1d8FdnX-XvNqP77nsKkvVGfEaRT5l9q5wvMbLwOZSiQKTnnFpzsE",
   NEXUS_STATES: [], // no sales tax collected until Certificate of Authority is sorted
   TWITCH_CHANNEL: "https://www.twitch.tv/pokebreakbroslive",
-  MARKUP_PERCENT: 10 // added on top of imported market price to offset payment fees; packs (manually priced) are unaffected
+  MARKUP_PERCENT: 10, // added on top of imported market price to offset payment fees; packs (manually priced) are unaffected
+  BULK_PRICE_THRESHOLD: 1.00, // cards with a market price below this sell at BULK_PRICE_FLOOR instead of getting the markup
+  BULK_PRICE_FLOOR: 1.00
 };
 
 const SUPABASE_URL = "https://vikxmnrhxcinobrdjrao.supabase.co";
@@ -436,6 +438,7 @@ function money(n){ return '$' + (Math.round(n*100)/100).toLocaleString('en-US',{
 
 function sellPrice(item){
   if(item.rarity === 'Pack') return item.price; // packs are manually priced, no markup applied
+  if(item.price < CONFIG.BULK_PRICE_THRESHOLD) return CONFIG.BULK_PRICE_FLOOR;
   return Math.round(item.price * (1 + CONFIG.MARKUP_PERCENT/100) * 100) / 100;
 }
 
